@@ -3,6 +3,8 @@ if __name__ == '__main__':
     # define NTPs list
     dNTPs = ['T', 'C', 'A', 'G']
     rNTPs = ['U', 'C', 'A', 'G']
+    # define list of natural amino acids, including stop
+    residues = ['G', 'A', 'V', 'L', 'I', 'P', 'M', 'C', 'S', 'F', 'Y', 'W', 'T', 'N', 'Q', 'D', 'E', 'R', 'H', 'K', '*'];
     # define polar requirement scale
     PRS = {
         'F' : 5.0,
@@ -102,7 +104,7 @@ if __name__ == '__main__':
     }
 
     # time to pickle!
-    toDump = [dNTPs, rNTPs, PRS, kdHydrophobicity, unrestrictedBlock, standardBlock, naturalBlock]
+    toDump = [dNTPs, rNTPs, residues, PRS, kdHydrophobicity, unrestrictedBlock, standardBlock, naturalBlock]
     with open('utilsDefinitions.pickle', 'wb') as handle:
         pickle.dump(toDump, handle)
 

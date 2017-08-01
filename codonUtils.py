@@ -6,7 +6,24 @@ import Bio.Data.CodonTable
 import networkx as nx
 import pickle
 
-class utils():
+class utils:
+    ''' A module used to package useful definitions and functions when
+    manipulating codon tables. Class attributes are listed below.
+
+    Class Attributes
+    ----------------
+    - dict standardTable: a dict representing the Standard Table
+    - list(str) dNTPs: a list of strings representing the DNA NTPs
+    - list(str) rNTPs: a list of strings representing the RNA NTPs
+    - dict PRS: a dict representing the Polar Requirement Scale
+    - dict kdHydrophobicity: a dict representing Kyte Doolittle hydrophobicity
+    - dict unrestrictedBlock: a dict representing a completely unfettered block
+        structure; used in simulations where wobble rule is ignored
+    - dict standardBlock: a dict representing the most biologically permissive
+        block structure (48 blocks)
+    - dict naturalBlock: a dict representing the block structure of the Standard
+        Table (25 blocks). More restrictive than other defined block structures
+    '''
     ###########################
     # define class properties #
     ###########################
@@ -19,7 +36,7 @@ class utils():
     # unpickle additional class properties
     with open('res/utilsDefinitions.pickle', 'rb') as handle:
         unPickled = pickle.load(handle)
-    [dNTPs, rNTPs, PRS, kdHydrophobicity, unrestrictedBlock,
+    [dNTPs, rNTPs, residues, PRS, kdHydrophobicity, unrestrictedBlock,
         standardBlock, naturalBlock] = unPickled
 
     @staticmethod
@@ -48,6 +65,30 @@ class utils():
                 AA_count[AA] += 1
         # return AA_count dictionary
         return AA_count
+
+    @staticmethod
+    def getBlockCounts(blocks):
+        ''' A function that takes a Codon Table represented in block structure
+        form and finds the number of blocks encoding each AA. Returns a
+        dictionary mapping AA to their respective counts.
+
+        Parameters
+        ----------
+        dict blocks: a python dict representing the codon table in block form
+
+        Returns
+        -------
+        dict blockCounts: a python dict mapping amino acids to degeneracy
+        '''
+        # initialize dict of counts and populate keys
+        blockCounts = {}
+        for AA in utils.residues:
+            blockCounts[AA] = 0
+        # increment counts
+        for AA in blocks.values():
+            blockCounts[AA] += 1
+        # return blockCounts
+        return blockCounts
 
     @staticmethod
     def getCodonConnectivity(table):
@@ -116,7 +157,6 @@ class utils():
                     continue
                 # if not, generate new codon
                 c_new = codon[:i] + nt + codon[i+1:]
-
                 # Base case: c_new already found
                 if c_new in cache:
                     continue
@@ -132,15 +172,13 @@ class utils():
                     cache.add(c_new)
                     # append c_new to list of codons to recurse through
                     recurse_list.append(c_new)
-
         # iterate over codons to recursively search for connectivity
         for c in recurse_list:
             # append results to neighbors list
-            neighbors = utils.connectRecurse(c, level + 1, table, neighbors, cache)
-
+            neighbors = utils.__connectRecurse(c, level + 1,
+                                            table, neighbors, cache)
         # return resulting list
         return neighbors
-
 
     @staticmethod
     def getResiConnectivity(table):
@@ -244,6 +282,5 @@ class utils():
             # return false if the set is more than one element long
             if len(blockResidues) > 1:
                 return False
-
         # if function reaches this point, return True
         return True
