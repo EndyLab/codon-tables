@@ -36,8 +36,9 @@ class utils:
     # unpickle additional class properties
     with open('res/utilsDefinitions.pickle', 'rb') as handle:
         unPickled = pickle.load(handle)
-    [dNTPs, rNTPs, residues, PRS, kdHydrophobicity, unrestrictedBlock,
-        standardBlock, naturalBlock] = unPickled
+    [dNTPs, rNTPs, residues,
+     PRS, kdHydrophobicity, Gilis, SCV,
+     unrestrictedBlock, standardBlock, naturalBlock] = unPickled
 
     @staticmethod
     def getAAcounts(table):

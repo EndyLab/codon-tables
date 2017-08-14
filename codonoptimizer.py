@@ -68,7 +68,7 @@ class MonteCarlo:
     ######################################
 
     def GDA(self, dW=None, W=0, W_stop=float("inf"), maxIter=1000,
-            preserveBlock = False, preserveStop = False):
+            preserveBlock = False, preserveStop = False, subFunc='minPRS'):
         '''The Great Deluge Algorithm for optimizing an objective function over
         codon table space
 
@@ -87,31 +87,48 @@ class MonteCarlo:
             not to preserve block structure when shuffling the table
         - bool preserveStop=False: a bool that tells the function whether or not
             to shuffle blocks encoding for STOP
+        - str subFunc: an optional parameter specifying the substitution metric
+            to be used in maximization. Defaults to __sub_minPRS().
+
+            Acceptable inputs:
+            - 'minPRS' --> __sub_minPRS()
+            - 'Gilis' --> __sub_Gilis()
+            - 'SCV' --> __sub_SCV()
+
         Returns
         -------
         - dict table: a python dict representing an optimized codon table
         - np.array Ws: a numpy array representing water level vs iteration
         - np.array Es: a numpy array representing cost(table) vs iteration
         '''
+        # define dictionary of acceptable substitution metrics
+        subs = {
+            'minPRS' : self.__sub_minPRS,
+            'Gilis' : self.__sub_Gilis,
+            'SCV' : self.__sub_SCV
+        }
         # declare data structures to return
         table = self.table
         Ws = np.zeros(maxIter)
         Es = np.zeros(maxIter)
         # initialize iteration counter and Energy value
         count = 0
-        E = self.costfxn(table)
+        E = self.costfxn(table, subs[subFunc])
+        # if standard table is below initial water level, adjust W
+        if (E < W):
+            W = E
         # populate first elements of arrays
         Ws[0] = W
         Es[0] = E
         # if not specified, calculate dW to be 1% of initial Es
         if dW is None:
-            dW = E/100
+            dW = abs(E/100)
         # loop through algorithm until an end condition is met
         while (count < maxIter - 1):
             # increment counter and make a tentative move
             count += 1
             newTable = self.tableShuffle(table, preserveBlock, preserveStop)
-            E_new = self.costfxn(newTable)
+            E_new = self.costfxn(newTable, subs[subFunc])
             # determine whether or not to accept change
             if (E_new > W):
                 # if so, update table, energy level and water level
@@ -176,16 +193,25 @@ class MonteCarlo:
         # convert blockForm back to table form and return
         return utils.blocksToTable(blockForm, self.blockStruct)
 
+    ######################################
+    ##          Cost  Functions         ##
+    ##                                  ##
+    ## NOTE: all cost functions should  ##
+    ##  take the same inputs!!          ##
+    ######################################
+
     @staticmethod
-    def maxMutMinVar(table):
-        '''MonteCarlo.maxMutMinVar: the default cost function for class.
-        Implements a version of the cost function used by Novozhilov et al.
-        2007, but optimizes for maximizing mutability while minimizing variance
-        per mutation
+    def maxMutMinVar(table, subFunc):
+        '''the default cost function for class. Implements a version of the
+        cost function used by Novozhilov et al. 2007, but optimizes for
+        maximizing mutability while minimizing variance per mutation
 
         Parameters
         ----------
-        dict table: a python dictionary representing the codon table to evaluate
+        - dict table: a python dictionary representing the codon table to
+            evaluate
+        - func subFunc(str AA_1, str AA_2): a function representing the penalty
+            for substituting two amino acids
 
         Returns
         -------
@@ -211,7 +237,7 @@ class MonteCarlo:
                 if AA_2 == '*':
                     continue
                 # calculate components of objective function
-                d_c12 = 1/(1 + (PRS[AA_1] - PRS[AA_2])**2)
+                d_c12 = subFunc(AA_1, AA_2)
                 ## this version of d is good for increasing diff b/w AA
                 # d_c12 = (1 + (PRS[AA_1] - PRS[AA_2])**2)
                 P_c12 = (1/12)**dist
@@ -224,19 +250,86 @@ class MonteCarlo:
     ##          Private Methods         ##
     ######################################
 
+    # substitution function
+    @staticmethod
+    def __sub_minPRS(AA_1, AA_2):
+        '''a private method used to calculate the cost of substituting two amino
+        acids using the polar requirement scale. Higher values are given to subs
+        that minimize the change in PRS. Output is bounded by [0,1].
+
+        Parameters
+        ----------
+        - str AA_1: a string representing the "from" amino acid
+        - str AA_2: a string representing the "to" amino acid
+
+        Returns
+        -------
+        float d_c12: a float representing the cost of this substitution
+        '''
+        # unpack PRS dict and return calculated cost
+        PRS = utils.PRS
+        return 1/(1 + (PRS[AA_1] - PRS[AA_2])**2)
+
+    @staticmethod
+    def __sub_Gilis(AA_1, AA_2):
+        '''a private method used to calculate the cost of substituting two amino
+        acids using the Gilis substitution matrix. Essentially just packages
+        the input for accessing the utils.Gilis dict. This matrix returns
+        larger values for substitutions that preserve physicochemistry and
+        smaller ones otherwise. Returns int values in range [-6, 7]
+
+        Parameters
+        ----------
+        - str AA_1: a string representing the "from" amino acid
+        - str AA_2: a string representing the "to" amino acid
+
+        Returns
+        -------
+        int d_c12: an int representing the cost of this substitution
+        '''
+        # unpack Gilis dict and return  cost
+        Gilis = utils.Gilis
+        return Gilis[(AA_1, AA_2)]
+
+    @staticmethod
+    def __sub_SCV(AA_1, AA_2):
+        '''a private method used to calculate the cost of substituting two amino
+        acids using the SCV substitution matrix. Essentially just packages the
+        input for accessing the utils.SCV dict. This matrix returns larger
+        values for substitutions that preserve physicochemistry and smaller
+        ones otherwise. Returns int values in range [-15, 12]
+
+        Parameters
+        ----------
+        - str AA_1: a string representing the "from" amino acid
+        - str AA_2: a string representing the "to" amino acid
+
+        Returns
+        -------
+        int d_c12: an int representing the cost of this substitution
+        '''
+        # unpack SCV dict and return cost
+        SCV = utils.SCV
+        return SCV[(AA_1, AA_2)]
+
+    def __debugGDA(self):
+        '''a private method used to debug GDA
+        '''
+        table, Ws, Es = self.GDA(preserveBlock=True, preserveStop=True)
+        # plot results
+        fig, axArray = plt.subplots(2, sharex=True)
+        axArray[0].plot(Es)
+        axArray[0].set_title('Simulation Metrics vs Iteration')
+        axArray[0].set_ylabel('Energy')
+        axArray[1].plot(Ws)
+        axArray[1].set_ylabel('Water')
+        plt.show()
+        # represent resulting codon tables
+        Table = codonTable(table)
+        fig2 = Table.plot3d('Optimized Codon Table: Node Color=Hydropathy')
+        fig3 = Table.plotGraph('Optimized Codon Graph: Node Color=Residue Degeneracy', node_val='count')
+
 # Debugging
 if __name__ == '__main__':
     sim = MonteCarlo()
-    table, Ws, Es = sim.GDA(preserveBlock=True, preserveStop=True)
-    # plot results
-    fig, axArray = plt.subplots(2, sharex=True)
-    axArray[0].plot(Es)
-    axArray[0].set_title('Simulation Metrics vs Iteration')
-    axArray[0].set_ylabel('Energy')
-    axArray[1].plot(Ws)
-    axArray[1].set_ylabel('Water')
-    plt.show()
-    # represent resulting codon tables
-    Table = codonTable(table)
-    fig2 = Table.plot3d('Optimized Codon Table: Node Color=Hydropathy')
-    fig3 = Table.plotGraph('Optimized Codon Graph: Node Color=Residue Degeneracy', node_val='count')
+    sim.__debugGDA()

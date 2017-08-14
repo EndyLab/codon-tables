@@ -1,4 +1,5 @@
 import pickle
+import pandas as pd
 if __name__ == '__main__':
     # define NTPs list
     dNTPs = ['T', 'C', 'A', 'G']
@@ -103,8 +104,34 @@ if __name__ == '__main__':
         24: ['GGU', 'GGC', 'GGA', 'GGG']
     }
 
+    # massage Gilis.csv files into the proper format
+    df = pd.read_csv('../res/Gilis.csv')
+    indices = df['Unnamed: 0'].tolist()
+    df.pop('Unnamed: 0')
+    df.index = indices
+    # populate dictionary representing the substitution matrix
+    Gilis = {}
+
+    for AA1 in indices:
+        for AA2 in indices:
+            Gilis[(AA1, AA2)] = df[AA1][AA2]
+
+    # repeat for scv.csv
+    df = pd.read_csv('../res/scv.csv')
+    indices = df['Unnamed: 0'].tolist()
+    df.pop('Unnamed: 0')
+    df.index = indices
+
+    SCV = {}
+
+    for AA1 in indices:
+        for AA2 in indices:
+            SCV[(AA1, AA2)] = df[AA1][AA2]
+
     # time to pickle!
-    toDump = [dNTPs, rNTPs, residues, PRS, kdHydrophobicity, unrestrictedBlock, standardBlock, naturalBlock]
+    toDump = [dNTPs, rNTPs, residues,
+                PRS, kdHydrophobicity, Gilis, SCV,
+                unrestrictedBlock, standardBlock, naturalBlock]
     with open('utilsDefinitions.pickle', 'wb') as handle:
         pickle.dump(toDump, handle)
 
