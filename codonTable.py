@@ -40,7 +40,7 @@ class codonTable:
         self.ordering = ordering
         self.codonGraph = self.tableToGraph(codonTable, norm)
         self.sparseMat = nx.adjacency_matrix(self.codonGraph)
-        self.adjMat = self.sparseMat.todense()
+        self.adjMat = np.array(self.sparseMat.todense())
 
     def sortOrdering(self):
         '''

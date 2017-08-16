@@ -852,10 +852,11 @@ def null_model_dir_sign(W, bin_swaps=5, wei_freq=.1):
     W = W.copy()
     n = len(W)
     np.fill_diagonal(W, 0)  # clear diagonal
-    Ap = (W > 0)  # positive adjmat
+    Ap = (W > 0)    # positive adjmat
+    An = (W < 0)    # negative adjmat
 
     if np.size(np.where(Ap.flat)) < (n * (n - 1)):
-        W_r = randmio_und_signed(W, bin_swaps)
+        W_r, *dummy = randmio_und_signed(W, bin_swaps)
         Ap_r = W_r > 0
         An_r = W_r < 0
     else:
@@ -884,7 +885,7 @@ def null_model_dir_sign(W, bin_swaps=5, wei_freq=.1):
             W0.flat[Lij[Oind]] = s * Wv  # weight at this index
         else:
             wsize = np.size(Wv)
-            wei_period = np.round(1 / wei_freq)  # convert frequency to period
+            wei_period = int(np.round(1 / wei_freq))  # convert frequency to period
             lq = np.arange(wsize, 0, -wei_period, dtype=int)
             for m in lq:  # iteratively explore at this period
                 # get indices of Lij that sort P
@@ -896,10 +897,10 @@ def null_model_dir_sign(W, bin_swaps=5, wei_freq=.1):
                     W0.flat[Lij[o]] = s * Wv[r]  # assign corresponding weight
 
                     # readjust expected weighted probability for i[o],j[o]
-                    f = 1 - Wv[r] / So[i[o]]
+                    f = np.array(1 - Wv[r] / So[i[o]])
                     P[i[o], :] *= f
-                    f = 1 - Wv[r] / So[j[o]]
-                    P[j[o], :] *= f
+                    f = np.array(1 - Wv[r] / So[j[o]])
+                    P[j[o], :] *= f # cast to an array for math (JC)
 
                     # readjust in-strength of i[o]
                     So[i[o]] -= Wv[r]
@@ -1005,7 +1006,7 @@ def null_model_und_sign(W, bin_swaps=5, wei_freq=.1):
             W0.flat[Lij[Oind]] = s * Wv  # weight at this index
         else:
             wsize = np.size(Wv)
-            wei_period = np.round(1 / wei_freq)  # convert frequency to period
+            wei_period = int(np.round(1 / wei_freq))  # convert frequency to period
             lq = np.arange(wsize, 0, -wei_period, dtype=int)
             for m in lq:  # iteratively explore at this period
                 # get indices of Lij that sort P
@@ -1017,10 +1018,10 @@ def null_model_und_sign(W, bin_swaps=5, wei_freq=.1):
                     W0.flat[Lij[o]] = s * Wv[r]  # assign corresponding weight
 
                     # readjust expected weighted probability for i[o],j[o]
-                    f = 1 - Wv[r] / S[i[o]]
+                    f = np.array(1 - Wv[r] / S[i[o]])
                     P[i[o], :] *= f
                     P[:, i[o]] *= f
-                    f = 1 - Wv[r] / S[j[o]]
+                    f = np.array(1 - Wv[r] / S[j[o]])
                     P[j[o], :] *= f
                     P[:, j[o]] *= f
 
@@ -1211,8 +1212,8 @@ def randmio_und_connected(R, itr):
     to reach every other node in the network. The input network for this
     function must be connected.
 
-    NOTE the changes to the BCT matlab function of the same name 
-    made in the Jan 2016 release 
+    NOTE the changes to the BCT matlab function of the same name
+    made in the Jan 2016 release
     have not been propagated to this function because of substantially
     decreased time efficiency in the implementation. Expect these changes
     to be merged eventually.
@@ -1355,7 +1356,7 @@ def randmio_dir_signed(R, itr):
         att = 0
         while att <= max_attempts:
             #select four distinct vertices
-        
+
             a, b, c, d = pick_four_unique_nodes_quickly(n)
 
             #a, b, c, d = np.random.choice(n, 4)
@@ -1507,7 +1508,7 @@ def randmio_und_signed(R, itr):
             if (    np.sign(r0_ab) == np.sign(r0_cd) and
                     np.sign(r0_ad) == np.sign(r0_cb) and
                     np.sign(r0_ab) != np.sign(r0_ad)):
-        
+
                 R[a, d] = R[d, a] = r0_ab
                 R[a, b] = R[b, a] = r0_ad
 
