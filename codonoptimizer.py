@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import random
 from codonTable import codonTable
 from codonUtils import utils
+from copy import copy
 
 #define Monte Carlo Simulation class
 class MonteCarlo:
@@ -11,7 +12,8 @@ class MonteCarlo:
     arbitrary objective function to minimize/maximize
     '''
     def __init__(self, table=utils.standardTable,
-                costfxn=None, wobble_rule = 'standard'):
+                costfxn=None, wobble_rule = 'standard',
+                debug=False):
         '''the init function for the MonteCarlo class. Optionally allows the
         user to specify the starting codon table, associated objective
         function, and which wobble_rules should be followed. Default values are
@@ -26,7 +28,7 @@ class MonteCarlo:
             input and outputs a cost associated with that table. If no
             funciton is supplied, defaults to maxMutMinVar.
         - str wobble_rule = 'standard': a string telling the simulator which
-            wobble rules to follow for accepting new tablesi
+            wobble rules to follow for accepting new tables
 
             Acceptable inputs:
             - 'standard' : 48 blocks, 2 stop blocks
@@ -34,6 +36,9 @@ class MonteCarlo:
                 table
             - 'unrestricted' : 63 open blocks, at least 0 of every AA and
                 stop.
+
+        - bool debug: optional boolean telling the initializer whether or not
+            to run self.__debug()
 
         Returns
         -------
@@ -56,12 +61,16 @@ class MonteCarlo:
         }
         # assign attributes
         self.table = table
-        self.blockStruct = blockChoices[wobble_rule]
+        self.blockStruct = copy(blockChoices[wobble_rule])
         self.costfxn = costfxn
         self.resiCounts = resiCounts
         self.connectivity = connectivity
         self.utils = utils
         self.wobble_rule = wobble_rule
+
+        # optionally run debugger
+        if debug:
+            self.__debugGDA()
 
     ######################################
     ##          Public  Methods         ##
@@ -315,7 +324,7 @@ class MonteCarlo:
     def __debugGDA(self):
         '''a private method used to debug GDA
         '''
-        table, Ws, Es = self.GDA(preserveBlock=True, preserveStop=True)
+        table, Ws, Es = self.GDA(maxIter=3000, preserveBlock=True, preserveStop=True)
         # plot results
         fig, axArray = plt.subplots(2, sharex=True)
         axArray[0].plot(Es)
@@ -331,5 +340,4 @@ class MonteCarlo:
 
 # Debugging
 if __name__ == '__main__':
-    sim = MonteCarlo()
-    sim.__debugGDA()
+    sim = MonteCarlo(debug=True)

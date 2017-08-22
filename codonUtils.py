@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import Bio.Data.CodonTable
 import networkx as nx
+import random
+from copy import copy
 import pickle
 
 class utils:
@@ -285,3 +287,70 @@ class utils:
                 return False
         # if function reaches this point, return True
         return True
+
+    @staticmethod
+    def randomTable(wobble_rule = 'standard'):
+        '''A static method used to generate a random codon table, optionally
+        defining the block structure. Will guarantee each amino acid be
+        represented by at least one block in the table.
+
+        Parameters
+        ----------
+        str wobble_rule = 'standard': a string telling the simulator which
+            wobble rules to follow for accepting new tables
+
+        Acceptable inputs:
+        - 'standard' : 48 blocks
+        - 'preserveBlock' : maintain same block structure as standard
+            table
+        - 'unrestricted' : 63 open blocks, at least 1 of every AA and
+            stop.
+
+        Returns
+        -------
+        dict table: a python dict representing the codon table to return
+        '''
+        # determine block structure based on wobble rule
+        blockChoices = {
+            'standard' : utils.standardBlock,
+            'preserveBlock' : utils.naturalBlock,
+            'unrestricted' : utils.unrestrictedBlock
+        }
+        blockStruct = copy(blockChoices[wobble_rule])
+        # get blocks to assign
+        blocks = list(blockStruct.keys())
+        random.shuffle(blocks)
+        # randomly assign one block to each residue
+        residues = copy(utils.residues)
+        for i, AA in enumerate(residues):
+            block = blocks[-(i+1)]
+            blockStruct[block] = AA
+        # truncate to ignore assigned blocks
+        blocks = blocks[:-(i+1)]
+        # randomly assign values to the remaining blocks
+        for block in blocks:
+            AA = random.choice(residues)
+            blockStruct[block] = AA
+        # convert blockStruct to table and return
+        return utils.blocksToTable(blockStruct, blockChoices[wobble_rule])
+
+    @staticmethod
+    def silencicity(table):
+        '''A static method used to calculate the silencicity of a codon table.
+        Silencicity is a lab defined metric calculating the fraction of all
+        mutations that are synonymous out of all possible ones.
+
+        Parameters
+        ----------
+        dict table: a python dict representing the codon table to analyze
+        
+        Returns
+        -------
+        float silencicity: a float representing the silencicity metric
+        '''
+
+if __name__ == '__main__':
+    table = utils.randomTable()
+    from codonTable import codonTable
+    test = codonTable(table)
+    test.plotGraph()

@@ -262,7 +262,8 @@ class codonTable:
         #return figure
         return fig
 
-    def plotGraph(self, title="", norm=True, node_val='kd'):
+    def plotGraph(self, title="", norm=True,
+                    nodeSize='count', nodeColor='kd'):
         ''' Represents self.codonTable as a network capturing the adjacency of
         the amino acids. Two amino acids are defined as adjacent if a codon
         representing AA_1 can be mutated to represent AA_2 without representing
@@ -271,7 +272,8 @@ class codonTable:
 
             P(a1, a2) = \Sigma_i p^{n_i}
 
-        node_val tells the plotter what should be represented using the node
+        nodeSize tells the plotter what values to use in representing node ize.
+        nodeColor tells the plotter what should be represented using the node
         color value (defaults to kdHydropathy). Returns figure handle for
         plotted figure.
 
@@ -280,7 +282,10 @@ class codonTable:
         - str title="": an optional input to define the title of the plot
         - bool norm=True: true->use residue ordering; false->use metric
             absolute value
-        - str node_val='kd': an optional input to specify the coloration of nodes
+        - str nodeSize='degeneracy': an optional input to specify the
+            node size based on a metric. Defaults to degeneracy
+        - str nodeColor='kd': an optional input to specify the
+            node size based on a metric. Defaults to degeneracy
 
         Returns
         -------
@@ -297,13 +302,15 @@ class codonTable:
             [edge['weight'] for (a1, a2, edge) in G.edges(data=True)]
         )
         weights /= np.mean(weights)
-        nodeVals = [data[node_val] for (node, data) in G.nodes(data=True)]
+        node_size = [data[nodeSize]*200 for (node, data) in G.nodes(data=True)]
+        node_color = [data[nodeColor] for (node, data) in G.nodes(data=True)]
         # set up layout
         positions = nx.spring_layout(G, iterations=100)
         # draw graph
         fig = plt.figure()
         plt.axis('off')
-        nodes = nx.draw_networkx_nodes(G, positions, node_color=nodeVals)
+        nodes = nx.draw_networkx_nodes(G, positions,
+                node_color=node_color, node_size=node_size)
         edges = nx.draw_networkx_edges(G, positions, width=weights)
         labels = nx.draw_networkx_labels(G, positions)
         # draw color bar
@@ -318,4 +325,4 @@ class codonTable:
 if __name__ == '__main__':
     test = codonTable()
     fig = test.plot3d('Standard Codon Table: Node Color=Hydropathy')
-    fig2 = test.plotGraph('Standard Codon Table: Node Color=Residue Degeneracy', node_val='count')
+    fig2 = test.plotGraph('Standard Codon Table: Node Color=Hydropathy Degeneracy', nodeSize='count', nodeColor='kd')
