@@ -36,11 +36,11 @@ class codonTable:
 
         # Assign assign instance attributes
         self.utils = utils
-        self.codonTable = codonTable
         self.ordering = ordering
+        self.codonDict = codonTable
         self.codonGraph = self.tableToGraph(codonTable, norm)
-        self.sparseMat = nx.adjacency_matrix(self.codonGraph)
-        self.adjMat = np.array(self.sparseMat.todense())
+        self.codonSparseMat = nx.adjacency_matrix(self.codonGraph)
+        self.codonAdjMat = np.array(self.codonSparseMat.todense())
 
     def sortOrdering(self):
         '''
@@ -113,7 +113,7 @@ class codonTable:
             'G' : 3,
         }
         # loop over codonTable items
-        for codon, AA in self.codonTable.items():
+        for codon, AA in self.codonDict.items():
             # extract x, y and z values
             x = codonToInt[codon[0]]
             y = codonToInt[codon[1]]
@@ -153,7 +153,7 @@ class codonTable:
             'G' : 3,
         }
         # loop over codonTable items
-        for i, (codon, AA) in enumerate(self.codonTable.items()):
+        for i, (codon, AA) in enumerate(self.codonDict.items()):
             # skip stop codons for now
             if AA == '*':
                 continue
@@ -169,7 +169,7 @@ class codonTable:
     def tableToGraph(self, table=None, norm=True):
         ''' Takes a dictionary representing a codon table as an input and
         returns a networkx graph representing that table. If no table is given,
-        the function will default to using self.codonTable.
+        the function will default to using self.codonDict.
 
         Parameters
         ----------
@@ -185,7 +185,7 @@ class codonTable:
         p_mut = 1/12
         # handle default table values
         if table == None:
-            table = self.codonTable
+            table = self.codonDict
         # declare graph
         codonGraph = nx.Graph()
         # call utils.getAAcounts to get degeneracy
@@ -264,7 +264,7 @@ class codonTable:
 
     def plotGraph(self, title="", norm=True,
                     nodeSize='count', nodeColor='kd'):
-        ''' Represents self.codonTable as a network capturing the adjacency of
+        ''' Represents self.codonDict as a network capturing the adjacency of
         the amino acids. Two amino acids are defined as adjacent if a codon
         representing AA_1 can be mutated to represent AA_2 without representing
         an intermediate residue. The edge weight is defined by the probability

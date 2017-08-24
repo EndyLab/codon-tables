@@ -10,3 +10,21 @@ from codonUtils import utils
 help(utils)
 ```
 ## codonTable
+A class used to handle representation and visualization of codon table objects. Can be used to represent a given codon table as a pandas DataFrame, a python dict, a networkx graph and corresponding adjacency matrix (representing the probability of mutating between amino acids given a table), and as plots visualizing these types. Import as follows:
+```python
+from codonTable import codonTable
+help(codonTable)
+``` 
+
+## codonOptimizer
+A class used to handle codon table space search and optimization. Includes definitions for cost functions as well as MCMC style optimization algorithm(s). Import as follows:
+```python
+from codonOptimizer import tableOptimizer
+help(tableOptimizer)
+```
+
+## Decoding Notebook
+A notebook used to demonstrate the codonTable class
+
+## Network Stats Notebook
+A notebook used to calculate and visualize statistics of random and optimized codon tables with respect to the standard table.

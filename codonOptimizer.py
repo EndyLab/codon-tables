@@ -7,14 +7,14 @@ from codonUtils import utils
 from copy import copy
 
 #define Monte Carlo Simulation class
-class MonteCarlo:
-    '''MonteCarlo: A class designed to optimize a codon table given an
-    arbitrary objective function to minimize/maximize
+class tableOptimizer:
+    '''A class designed to optimize a codon table given an arbitrary objective 
+    function to minimize/maximize
     '''
     def __init__(self, table=utils.standardTable,
                 costfxn=None, wobble_rule = 'standard',
                 debug=False):
-        '''the init function for the MonteCarlo class. Optionally allows the
+        '''the init function for the tableOptimizer class. Optionally allows the
         user to specify the starting codon table, associated objective
         function, and which wobble_rules should be followed. Default values are
         supplied if the user does not specify them (i.e. Standard Code, 47
@@ -42,7 +42,7 @@ class MonteCarlo:
 
         Returns
         -------
-        MonteCarlo obj: returns an instance of the MonteCarlo object
+        tableOptimizer obj: returns an instance of the tableOptimizer object
         '''
         # handle codonTable objects being passed
         if type(table) == codonTable:
@@ -340,4 +340,4 @@ class MonteCarlo:
 
 # Debugging
 if __name__ == '__main__':
-    sim = MonteCarlo(debug=True)
+    sim = tableOptimizer(debug=True)
