@@ -17,6 +17,10 @@ class utils:
     - dict standardTable: a dict representing the Standard Table
     - list(str) dNTPs: a list of strings representing the DNA NTPs
     - list(str) rNTPs: a list of strings representing the RNA NTPs
+    - list(str) tripletCodons: a list of string representing the set of rNTP
+        codons
+    - set tuples(str) tripletMutPairs: a set of tuples of string representing
+        pairs of triplet rNTP codons one mutation away
     - dict PRS: a dict representing the Polar Requirement Scale
     - dict kdHydrophobicity: a dict representing Kyte Doolittle hydrophobicity
     - dict unrestrictedBlock: a dict representing a completely unfettered block
@@ -38,7 +42,7 @@ class utils:
     # unpickle additional class properties
     with open('res/utilsDefinitions.pickle', 'rb') as handle:
         unPickled = pickle.load(handle)
-    [dNTPs, rNTPs, residues,
+    [dNTPs, rNTPs, residues, tripletCodons, tripletMutPairs,
      PRS, kdHydrophobicity, Gilis, SCV,
      unrestrictedBlock, standardBlock, naturalBlock] = unPickled
 
@@ -343,11 +347,20 @@ class utils:
         Parameters
         ----------
         dict table: a python dict representing the codon table to analyze
-        
+
         Returns
         -------
         float silencicity: a float representing the silencicity metric
         '''
+        # initialize counter and get number of possible mutation pairs
+        synMut = 0
+        totalMut = len(utils.tripletMutPairs)
+        # loop over mutation pairs and increment for synonymous mutations
+        for (c1, c2) in utils.tripletMutPairs:
+            if(table[c1] == table[c2]):
+                synMut += 1
+        # return fraction of synonymous mutations
+        return synMut/totalMut
 
 if __name__ == '__main__':
     table = utils.randomTable()

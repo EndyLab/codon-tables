@@ -55,12 +55,14 @@ if __name__ == '__main__':
         'R' : -4.5,
     }
 
-    # define block structures
+    # define block structures and codon set
     unrestrictedBlock = {}
+    tripletCodons = []
     count = 0;
     for c1 in rNTPs:
         for c2 in rNTPs:
             for c3 in rNTPs:
+                tripletCodons.append(c1+c2+c3)
                 unrestrictedBlock[count] = [c1+c2+c3]
                 count+=1
 
@@ -104,6 +106,19 @@ if __name__ == '__main__':
         24: ['GGU', 'GGC', 'GGA', 'GGG']
     }
 
+    #define all pairs of codons 1 mutation away
+    tripletMutPairs = set()
+    for codon in tripletCodons:
+        for i, base in enumerate(codon):
+            for nt in rNTPs:
+                # handle if nt is the same as base
+                if nt == base:
+                    continue
+                # if not, generate new codon
+                c_new = codon[:i] + nt + codon[i+1:]
+                # add to set
+                tripletMutPairs.add((codon, c_new))
+
     # massage Gilis.csv files into the proper format
     df = pd.read_csv('../res/Gilis.csv')
     indices = df['Unnamed: 0'].tolist()
@@ -129,14 +144,14 @@ if __name__ == '__main__':
             SCV[(AA1, AA2)] = df[AA1][AA2]
 
     # time to pickle!
-    toDump = [dNTPs, rNTPs, residues,
+    toDump = [dNTPs, rNTPs, residues, tripletCodons, tripletMutPairs,
                 PRS, kdHydrophobicity, Gilis, SCV,
                 unrestrictedBlock, standardBlock, naturalBlock]
-    with open('utilsDefinitions.pickle', 'wb') as handle:
+    with open('../res/utilsDefinitions.pickle', 'wb') as handle:
         pickle.dump(toDump, handle)
 
     # test the pickle
-    with open('utilsDefinitions.pickle', 'rb') as handle:
+    with open('../res/utilsDefinitions.pickle', 'rb') as handle:
         unDumped = pickle.load(handle)
     # taste the pickle
     if (toDump == unDumped) :
