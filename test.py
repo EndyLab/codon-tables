@@ -1,5 +1,2 @@
-from codonTable import codonTable
-import bct
-
-ct = codonTable()
-bct.null_model_dir_sign(ct.adjMat)
+import os
+print(os.path.dirname(os.path.abspath(__file__)))

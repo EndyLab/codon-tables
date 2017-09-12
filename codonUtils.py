@@ -1,5 +1,6 @@
 # import necessary modules
 import numpy as np
+from scipy.special import comb
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import Bio.Data.CodonTable
@@ -7,6 +8,10 @@ import networkx as nx
 import random
 from copy import copy
 import pickle
+import os
+
+# define path to file directory
+path = os.path.dirname(os.path.abspath(__file__))
 
 class utils:
     ''' A module used to package useful definitions and functions when
@@ -40,7 +45,7 @@ class utils:
     standardTable['UAG'] = '*'
     standardTable['UGA'] = '*'
     # unpickle additional class properties
-    with open('res/utilsDefinitions.pickle', 'rb') as handle:
+    with open(path+'/res/utilsDefinitions.pickle', 'rb') as handle:
         unPickled = pickle.load(handle)
     [dNTPs, rNTPs, residues, tripletCodons, tripletMutPairs,
      PRS, kdHydrophobicity, Gilis, SCV,
@@ -337,6 +342,41 @@ class utils:
             blockStruct[block] = AA
         # convert blockStruct to table and return
         return utils.blocksToTable(blockStruct, blockChoices[wobble_rule])
+
+    @staticmethod
+    def numTables(l_aa, b):
+        '''A static method used to calculate the number of codon tables
+        realizable given a number of amino acids to include, length of the
+        codon, and number of blocks. Relies on an inclusion/exclusion criterion
+        (i.e. count the total number of codon tables, minus the number that do
+        not include one AA, plus the number that do not include two AAs...)
+
+        l_aa = length of amino acid alphabet (20 + 1 stop)
+        b = number of blocks to assign (triplet most permissive = 48, quadruplet most permissive = 192)
+
+        n = l_aa^b + Sum_i^(l_aa-1) [(-1)^i * binomial(l_aa, i) * (l_aa - i)^b]
+
+        Parameters
+        ----------
+        - int l_aa: the number of amino acids + Stop to encode
+        - int b: the number of blocks in the codon table
+
+        Returns
+        -------
+        - int n: the number of possible tables
+        - str num: n, represented in scientific notation as a string
+        '''
+        # handle string processing
+        mag = -1
+        tempN = n
+        while (tempN > 0):
+            # increment mag for each order of magnitude
+            tempN = tempN // 10
+            mag += 1
+        # create string representing n in scientific notation
+        strN = str(n)[:3]
+        num = '{0}.{1}E{2}'.format(strN[0], strN[1:], mag)
+        return n, num
 
     @staticmethod
     def silencicity(table):

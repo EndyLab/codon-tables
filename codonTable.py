@@ -1,23 +1,25 @@
 # import necessary modules
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import networkx as nx
-from codonUtils import utils
+from CodonTables.codonUtils import utils
 
 class codonTable:
     ''' A class used to handle codon table objects.
     '''
-    def __init__(self, codonTable=None, ordering=None, norm=True):
+    def __init__(self, table=None, ordering=None, norm=True):
         '''Automatically loads object with a codonTable and a
         comparison function between amino acids "ordering". bool norm is used
-        to tell tableToGraph whether or not to set node values based on
+        to tell dictToGraph whether or not to set node values based on
         absolute value of metric or just the ordering. This nomenclature is
         consistent throughout the object.
 
         Parameters
         ----------
-        - dict codonTable=None: represents codon table
+        - dict table=None: a python dict representing a codon table, optionally
+            takes a string 'random' to assign a random table
         - dict ordering=None: represents the mapping of residues to some metric
         - bool norm=True: true->use residue ordering; false->use metric
             absolute value
@@ -25,10 +27,13 @@ class codonTable:
         -------
         codonTable obj: returns a codonTable object
         '''
-        # Define codonTable if not user defined
-        if codonTable == None:
-            # load standard codon table using Biopython
-            codonTable = utils.standardTable
+        # optionally generate a random table
+        if table == 'random':
+            table = utils.randomTable()
+        # default to standard table if not specified or wrong datatype
+        elif table == None or not type(table) == dict:
+            table = utils.standardTable
+
         # Define AA color ordering if not defined
         if ordering == None:
             # default to Kyte and Doolittle ordering
@@ -37,8 +42,9 @@ class codonTable:
         # Assign assign instance attributes
         self.utils = utils
         self.ordering = ordering
-        self.codonDict = codonTable
-        self.codonGraph = self.tableToGraph(codonTable, norm)
+        self.codonDict = table
+        self.codonTable = self.dictToTable(table)
+        self.codonGraph = self.dictToGraph(table, norm)
         self.codonSparseMat = nx.adjacency_matrix(self.codonGraph)
         self.codonAdjMat = np.array(self.codonSparseMat.todense())
 
@@ -166,7 +172,44 @@ class codonTable:
         # return arrays
         return xs, ys, zs, vals
 
-    def tableToGraph(self, table=None, norm=True):
+    def dictToTable(self, table=None):
+        '''A method used to convert a dict representing a codon table to a
+        pandas DataFrame representing the same table in a human readable form
+
+        Paramters
+        ---------
+        dict table=None: python dict representing a codon table
+
+        Returns
+        -------
+        pd.DataFrame df: pandas DataFrame representing a codon table in a more
+            traditional format
+        '''
+        # get list of rNTPs and declare list of dataframes
+        NTP = utils.rNTPs
+        dfs = []
+        # handle default options for table
+        if table == None:
+            table = self.codonDict
+        # for each first position, define new dict to become a dataframe
+        for c1 in NTP:
+            dfDict = {}
+            # for each second position, generate a new list of codon/AA pairs
+            for c2 in NTP:
+                row = []
+                # for each third position, populate row list
+                for c3 in NTP:
+                    codon = c1+c2+c3
+                    row.append(codon + ' : ' + table[codon])
+                # add row to dict under label of second position
+                dfDict[c2] = row
+            # create new data frame and add to list of data frames
+            df = pd.DataFrame(dfDict, index=NTP)
+            dfs.append(df[NTP])
+        # return the concatenation of the resulting dataframes
+        return pd.concat(dfs, keys=NTP)
+
+    def dictToGraph(self, table=None, norm=True):
         ''' Takes a dictionary representing a codon table as an input and
         returns a networkx graph representing that table. If no table is given,
         the function will default to using self.codonDict.

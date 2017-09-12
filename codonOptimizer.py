@@ -2,8 +2,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-from codonTable import codonTable
-from codonUtils import utils
+from CodonTables.codonTable import codonTable
+from CodonTables.codonUtils import utils
 from copy import copy
 
 #define Monte Carlo Simulation class
