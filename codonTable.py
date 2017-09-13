@@ -1,8 +1,11 @@
 # import necessary modules
 import numpy as np
 import pandas as pd
+from matplotlib import cm
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap as LSC
 from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import networkx as nx
 from CodonTables.codonUtils import utils
 
@@ -151,17 +154,21 @@ class codonTable:
         ys = np.zeros(64)
         zs = np.zeros(64)
         vals = np.zeros(64)
+        stops = []
         # define coordinate mappings for codon nt
         codonToInt = {
-            'A' : 0,
-            'U' : 1,
-            'C' : 2,
+            'U' : 0,
+            'C' : 1,
+            'A' : 2,
             'G' : 3,
         }
         # loop over codonTable items
         for i, (codon, AA) in enumerate(self.codonDict.items()):
-            # skip stop codons for now
+            # package stop codons separately into a list of tuples
             if AA == '*':
+                pos = (codonToInt[codon[0]], codonToInt[codon[1]],
+                    codonToInt[codon[2]])
+                stops.append(pos)
                 continue
             # extract x, y and z values
             xs[i] = codonToInt[codon[0]]
@@ -170,15 +177,23 @@ class codonTable:
             # extract value to store
             vals[i] = self.getVal(AA, norm)
         # return arrays
-        return xs, ys, zs, vals
+        return xs, ys, zs, vals, stops
 
-    def dictToTable(self, table=None):
+    def dictToTable(self, table=None, color='viridis'):
         '''A method used to convert a dict representing a codon table to a
         pandas DataFrame representing the same table in a human readable form
 
         Paramters
         ---------
-        dict table=None: python dict representing a codon table
+        - dict table=None: python dict representing a codon table
+        - str color="viridis": an optional input used to set coloration of the
+            dataframe. Accepted inputs:
+            - red
+            - green
+            - blue
+            - purple
+            - grey
+            - viridis
 
         Returns
         -------
@@ -259,13 +274,22 @@ class codonTable:
         #return network
         return codonGraph
 
-    def plot3d(self, title="", norm=True):
+    def plot3d(self, title="", cbar="viridis", ctitle="", norm=True):
         ''' Represents self.table in 3D space. Returns the figure handle of the
         visualization. Optionally puts a title in the figure.
 
         Parameters
         ----------
         - str title="": an optional input to define the title of the plot
+        - str cbar="viridis": an optional input used to set the color of the
+            cbar. Accepted inputs:
+                - red
+                - green
+                - blue
+                - purple
+                - grey
+                - viridis
+        - str ctitle="": an optional input to define title of color bar
         - bool norm=True: true->use residue ordering; false->use metric
             absolute value
 
@@ -274,16 +298,36 @@ class codonTable:
         plt.figure fig: matplotlib figure handle for the resulting plot
         '''
         # call getScatterData to extract arrays from codon table
-        xs, ys, zs, vals = self.getScatterData(norm)
+        xs, ys, zs, vals, stops = self.getScatterData(norm)
         # initialize figure and axes objects
         fig = plt.figure()
         ax = Axes3D(fig)
+        # pick colormap
+        if (cbar == "viridis"):
+            softened = False
+        else:
+            softened = True
+        cmap = self.__colormap(cbar, softened)
         # plot data
-        scat = ax.scatter(xs,ys,zs,s=1000,c=vals)
-        cbar = plt.colorbar(scat)
+        scat = ax.scatter(xs, ys, zs, s=1000, cmap=cmap, c=vals)
+        # plot colorbar
+        cbar = plt.colorbar(scat, shrink=0.8, location="left")
+        cbar.set_alpha(0.5)
+        cbar.outline.set_visible(False)
+        cbar.set_ticks([])
+        cbar.set_label(ctitle)
+        # plot stops as grey balls
+        xstop = []
+        ystop = []
+        zstop = []
+        for (x, y, z) in stops:
+            xstop.append(x)
+            ystop.append(y)
+            zstop.append(z)
+        ax.scatter(xstop,ystop,zstop,s=1000,c='grey')
         # set axes labels and ticks
         ticks = np.arange(0,4)
-        tick_labels = ['A', 'U', 'C', 'G']
+        tick_labels = ['U', 'C', 'A', 'G']
 
         ax.set_xlabel('Position 1')
         ax.set_ylabel('Position 2')
@@ -364,8 +408,76 @@ class codonTable:
         plt.show()
         return fig
 
+    def colorTable(self, df, color='viridis'):
+        '''a private method used to colorize pandas DataFrames
+
+        Parameters
+        ----------
+        - str color="viridis": an optional input used to set the color of the
+            DataFrame. Accepted inputs:
+                - red
+                - green
+                - blue
+                - purple
+                - grey
+                - viridis
+        - pd.DataFrame df: returns DataFrame post colorization
+
+        Returns
+        -------
+        pd.DataFrame df: returns DataFrame post colorization
+        '''
+        # get the color map
+        if (cbar == "viridis"):
+            softened = False
+        else:
+            softened = True
+        cmap = self.__colormap(color, softened)
+        # loop through DataFrame to get max value
+
+
+    @staticmethod
+    def __colormap(color, softened=False):
+        '''a private static method used to generate a color bar for plots.
+        Optionally cuts off low end of the color scheme for visibility
+
+        Parameters
+        ----------
+        - str color: a string representing the color of color bar to use.
+            Accepted inputs:
+                - red
+                - green
+                - blue
+                - purple
+                - grey
+                - viridis
+        - bool softened=False: a bool telling the function whether or not to
+            clip lighter colors for visibility
+
+        Returns
+        -------
+        cbar: the resulting color bar
+        '''
+        # pick colormap from options
+        options = {
+            'red' : cm.Reds,
+            'blue' : cm.Blues,
+            'green' : cm.Greens,
+            'purple' : cm.Purples,
+            'grey' : cm.Greys,
+            'viridis' : cm.viridis
+        }
+        cmap = options[color]
+        # optionally clip colormap
+        if softened:
+            start = 0.3
+            stop = 1
+            colors = cmap(np.linspace(start, stop, cmap.N))
+            cmap = LSC.from_list('Upper Half', colors)
+        return cmap
+
 ### Test script
 if __name__ == '__main__':
     test = codonTable()
-    fig = test.plot3d('Standard Codon Table: Node Color=Hydropathy')
-    fig2 = test.plotGraph('Standard Codon Table: Node Color=Hydropathy Degeneracy', nodeSize='count', nodeColor='kd')
+    fig = test.plot3d('Standard Codon Table', 'blue', 'Kyte-Doolittle Hydropathy')
+    #fig2 = test.plotGraph('Standard Codon Table: Node Color=Hydropathy Degeneracy', nodeSize='count', nodeColor='kd')
