@@ -179,21 +179,13 @@ class codonTable:
         # return arrays
         return xs, ys, zs, vals, stops
 
-    def dictToTable(self, table=None, color='viridis'):
+    def dictToTable(self, table=None):
         '''A method used to convert a dict representing a codon table to a
         pandas DataFrame representing the same table in a human readable form
 
         Paramters
         ---------
-        - dict table=None: python dict representing a codon table
-        - str color="viridis": an optional input used to set coloration of the
-            dataframe. Accepted inputs:
-            - red
-            - green
-            - blue
-            - purple
-            - grey
-            - viridis
+        dict table=None: python dict representing a codon table
 
         Returns
         -------
@@ -215,6 +207,7 @@ class codonTable:
                 # for each third position, populate row list
                 for c3 in NTP:
                     codon = c1+c2+c3
+                    '''NOTE: this is where things get funky'''
                     row.append(codon + ' : ' + table[codon])
                 # add row to dict under label of second position
                 dfDict[c2] = row
@@ -274,15 +267,15 @@ class codonTable:
         #return network
         return codonGraph
 
-    def plot3d(self, title="", cbar="viridis", ctitle="", norm=True):
+    def plot3d(self, title="", color="viridis", ctitle="", norm=True):
         ''' Represents self.table in 3D space. Returns the figure handle of the
         visualization. Optionally puts a title in the figure.
 
         Parameters
         ----------
         - str title="": an optional input to define the title of the plot
-        - str cbar="viridis": an optional input used to set the color of the
-            cbar. Accepted inputs:
+        - str color="viridis": an optional input used to set the color of the
+            color. Accepted inputs:
                 - red
                 - green
                 - blue
@@ -303,13 +296,13 @@ class codonTable:
         fig = plt.figure()
         ax = Axes3D(fig)
         # pick colormap
-        if (cbar == "viridis"):
+        if (color == "viridis"):
             softened = False
         else:
             softened = True
-        cmap = self.__colormap(cbar, softened)
+        cmap = self.colormap(color, softened)
         # plot data
-        scat = ax.scatter(xs, ys, zs, s=1000, cmap=cmap, c=vals)
+        scat = ax.scatter(xs, ys, zs, s=1200, cmap=cmap, c=vals)
         # plot colorbar
         cbar = plt.colorbar(scat, shrink=0.8, location="left")
         cbar.set_alpha(0.5)
@@ -324,7 +317,7 @@ class codonTable:
             xstop.append(x)
             ystop.append(y)
             zstop.append(z)
-        ax.scatter(xstop,ystop,zstop,s=1000,c='grey')
+        ax.scatter(xstop,ystop,zstop,s=1200,c='grey')
         # set axes labels and ticks
         ticks = np.arange(0,4)
         tick_labels = ['U', 'C', 'A', 'G']
@@ -345,11 +338,13 @@ class codonTable:
         if title != "":
             plt.title(title)
         #show figure
+        ax.view_init(elev=8, azim=-11)
         plt.show()
         #return figure
         return fig
 
-    def plotGraph(self, title="", norm=True,
+    def plotGraph(self, title="", ctitle="",
+                    color='viridis', norm=True,
                     nodeSize='count', nodeColor='kd'):
         ''' Represents self.codonDict as a network capturing the adjacency of
         the amino acids. Two amino acids are defined as adjacent if a codon
@@ -367,8 +362,17 @@ class codonTable:
         Parameters
         ----------
         - str title="": an optional input to define the title of the plot
+        - str ctitle="": an optional input to define title of color bar
         - bool norm=True: true->use residue ordering; false->use metric
             absolute value
+        - str color="viridis": an optional input used to set the color of the
+            network. Accepted inputs:
+                - red
+                - green
+                - blue
+                - purple
+                - grey
+                - viridis
         - str nodeSize='degeneracy': an optional input to specify the
             node size based on a metric. Defaults to degeneracy
         - str nodeColor='kd': an optional input to specify the
@@ -382,6 +386,12 @@ class codonTable:
         ----------
         Edge weight may be changing between iterations! confirm this and fix
         '''
+        # pick colormap
+        if (color == "viridis"):
+            softened = False
+        else:
+            softened = True
+        cmap = self.colormap(color, softened)
         # unpack graph
         G = self.codonGraph
         # unpack and normalize edge weights and node values for visualization
@@ -389,56 +399,44 @@ class codonTable:
             [edge['weight'] for (a1, a2, edge) in G.edges(data=True)]
         )
         weights /= np.mean(weights)
-        node_size = [data[nodeSize]*200 for (node, data) in G.nodes(data=True)]
-        node_color = [data[nodeColor] for (node, data) in G.nodes(data=True)]
+        node_size = np.array(
+            [data[nodeSize]*200 for (node, data) in G.nodes(data=True)]
+        )
+        node_color = np.array(
+            [data[nodeColor] for (node, data) in G.nodes(data=True)]
+        )
         # set up layout
         positions = nx.spring_layout(G, iterations=100)
         # draw graph
         fig = plt.figure()
         plt.axis('off')
-        nodes = nx.draw_networkx_nodes(G, positions,
+        nodes = nx.draw_networkx_nodes(G, positions, cmap=cmap,
                 node_color=node_color, node_size=node_size)
         edges = nx.draw_networkx_edges(G, positions, width=weights)
         labels = nx.draw_networkx_labels(G, positions)
-        # draw color bar
+        # plot colorbar
         cbar = plt.colorbar(nodes)
-        # format graph
+        cbar.outline.set_visible(False)
+        cbar.set_ticks([])
+        cbar.set_label(ctitle)
+        # recolor stop codons to grey
+        stops = []
+        for i, AA in enumerate(G.nodes()):
+            if AA == '*':
+                stops.append(i)
+        stops = np.array(stops)
+        nx.draw_networkx_nodes(G, positions,
+            nodelist=['*'], node_size=node_size[stops]+30,
+            node_color='grey')
+        #format graph
         if title != "":
             plt.title(title)
         plt.show()
         return fig
 
-    def colorTable(self, df, color='viridis'):
-        '''a private method used to colorize pandas DataFrames
-
-        Parameters
-        ----------
-        - str color="viridis": an optional input used to set the color of the
-            DataFrame. Accepted inputs:
-                - red
-                - green
-                - blue
-                - purple
-                - grey
-                - viridis
-        - pd.DataFrame df: returns DataFrame post colorization
-
-        Returns
-        -------
-        pd.DataFrame df: returns DataFrame post colorization
-        '''
-        # get the color map
-        if (cbar == "viridis"):
-            softened = False
-        else:
-            softened = True
-        cmap = self.__colormap(color, softened)
-        # loop through DataFrame to get max value
-
-
     @staticmethod
-    def __colormap(color, softened=False):
-        '''a private static method used to generate a color bar for plots.
+    def colormap(color, softened=False):
+        '''a static method used to generate a color bar for plots.
         Optionally cuts off low end of the color scheme for visibility
 
         Parameters
@@ -456,7 +454,7 @@ class codonTable:
 
         Returns
         -------
-        cbar: the resulting color bar
+        cmap: the resulting color bar
         '''
         # pick colormap from options
         options = {
@@ -479,5 +477,5 @@ class codonTable:
 ### Test script
 if __name__ == '__main__':
     test = codonTable()
-    fig = test.plot3d('Standard Codon Table', 'blue', 'Kyte-Doolittle Hydropathy')
-    #fig2 = test.plotGraph('Standard Codon Table: Node Color=Hydropathy Degeneracy', nodeSize='count', nodeColor='kd')
+    #fig = test.plot3d('Standard Codon Table', 'blue', 'Kyte-Doolittle Hydropathy')
+    fig2 = test.plotGraph('Standard Codon Table: Node Size=Residue Degeneracy', nodeSize='count', nodeColor='kd', ctitle='Kyte-Doolittle Hydropathy')
