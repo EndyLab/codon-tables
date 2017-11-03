@@ -2,13 +2,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-from CodonTables.codonTable import codonTable
-from CodonTables.codonUtils import utils
+from codonTable import codonTable
+from codonUtils import utils
 from copy import copy
 
 #define Monte Carlo Simulation class
 class tableOptimizer:
-    '''A class designed to optimize a codon table given an arbitrary objective 
+    '''A class designed to optimize a codon table given an arbitrary objective
     function to minimize/maximize
     '''
     def __init__(self, table=utils.standardTable,
