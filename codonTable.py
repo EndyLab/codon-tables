@@ -7,7 +7,7 @@ from matplotlib.colors import LinearSegmentedColormap as LSC
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import networkx as nx
-from CodonTables.codonUtils import utils
+from codonUtils import utils
 
 class codonTable:
     ''' A class used to handle codon table objects.
