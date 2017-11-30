@@ -60,15 +60,15 @@ class thunderflask():
         '''
         # initialize population trace arrays for initial strains
         for strain in self.bigStrains + self.smallStrains:
-            numSteps = np.ceil(T/timestep)
+            numSteps = int(np.ceil(T/timestep))
             self.poptrace[strain.ID] = np.zeros(numSteps)
             self.poptrace[strain.ID][0] = strain.N_pop
         # main loop
         T_tot = 0
-        count = 0
-        while T_tot < T:
+        index = 0
+        #while T_tot < T:
             # stochastic simulation
-
+            #T_stoch, ind_stoch = self.stochSim(dT, timestep, index)
             # numerical simulation
 
             # strain swapping (if low pop strains get large or vice versa)
@@ -78,7 +78,7 @@ class thunderflask():
         # return results of simulation
         return
 
-    def stochSim(self, T_approx, dt, startind):
+    def stochSim(self, T_approx):
         '''
         Method used to perform stochastic simulation of bacterial growth
         dynamics. Used to handle strains whose total population size is less
@@ -86,57 +86,59 @@ class thunderflask():
 
         Parameters
         ----------
-        - float T_approx: the approximate simulation time (in sec)
-        - float dt: the time resolution of population traces (in sec)
-        - int startind: the index of the simulation start time in pop traces
+        float T_approx: the approximate simulation time (in sec)
 
         Returns
         ------
         - float T_elapsed: the actual simulation time (in sec)
-        - int index: the number of timesteps performed
+        - np.array taus: the time steps between reactions (in sec)
         '''
-        # declare numpy array of traces for this epoch with some buffer
-        numIter = np.ceil(T_approx/dt) + T_approx*0.1 # 10% buffer for safety
+        ###############################################
+        # Initialize Stochastic Simulation attributes #
+        ###############################################
+        # calculate a_tot for initial conditions to predict average timestep
+        a_i = self.__rxnpropensity()
+        a_tot = a_i.sum()
+        # declare number of iterations to perform and number of strains
+        numIter = int(np.ceil(T_approx*a_tot)) # dt ~ 1/atot --> iter = T/dt
         numStrains = len(self.smallStrains)
-        trace = np.zeros(numStrains, numIter)
+        # construct dictionary of possible reactions
+        #####################
+        # Declare variables #
+        #####################
+        # declare numpy array of traces for this epoch
+        trace = np.zeros((numStrains, numIter))
+        # declare numpy array for storing time steps
+        taus = np.zeros(numIter)
         # declare initial population sizes
         for i, strain in enumerate(self.smallStrains):
             trace[i, 0] = strain.N_pop
-        # declare array of reaction propensities
-        a_i = np.zeros(2*numStrains)
         # declare iteration counter variables
         T_elapsed = 0
-        index = 0
-        # loop while T_approx has not been reached
-        while (T_elapsed < T_approx):
+        # DEBUG: track reaction choices
+        ivals = []
+        #############
+        # Main Loop #
+        #############
+        for timeind in range(numIter):
             # calculate reaction propensities
-            for i, strain in enumerate(self.smallStrains):
-                '''
-                growprop = ????
-                deathprop = ?????
-                a_i[2*i] = growprop*strain.N_pop # growth propensity
-                a_i[2*i+1] = deathprop*strain.N_pop # death propensity
-                '''
+            a_i = self.__rxnpropensity()
             # calculate time to next reaction
             a_cumsum = np.cumsum(a_i)
             a_tot = a_cumsum[-1]
             tau = np.log(1/np.random.rand())/a_tot
+            taus.append(tau)
             # choose next reaction
             rxnval = a_tot * np.random.rand()
-            for i in range(numStrains):
-                if a_cumsum[i] < rxnval:
-                    continue
-                else:
-                    break
+            i = np.argmax(a_cumsum > rxnval)
+            ivals.append(i)
             strainind = i//2
             # even rxns are growth, odd are death
             popchange = (-1)**i
             # propagate populations
-            dIndex = np.ceil(tau/dt)
-            '''
-            make this a tiling thing, does not automatically broadcast
-            traces[:, index:index+dIndex+1] = traces[:, index]
-            '''
+            dIndex = int(np.ceil(tau/dt))
+            trace[:, index:index+dIndex+1] = np.broadcast_to(trace[:, index],
+                (dIndex+1, numStrains)).T
             trace[strainind, index+dIndex+1] += popchange
             # update T_elapsed and index
             T_elapsed += tau
@@ -145,9 +147,9 @@ class thunderflask():
         # update current population size for each strain and package traces
         for i, strain in enumerate(self.smallStrains):
             strain.N_pop = trace[i, index]
-            self.poptrace[strain.ID][startindex:index+1] = trace[i,:]
+            self.poptrace[strain.ID][startind:startind+index+1] = trace[i,:index+1]
         # return T_elapsed and current index
-        return T_elapsed, index
+        return T_elapsed, index, ivals
 
     def numericalSim(self):
         '''
@@ -163,3 +165,67 @@ class thunderflask():
         '''
         '''
         return
+
+    #######################
+    #   Private Methods   #
+    #######################
+    def __rxnpropensity(self):
+        '''A private method used to calculate the reaction propensities
+        of the stochastic regime strains.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        np.array a_i: numpy array of reaction propensities
+        '''
+        # declare array for reaction propensities
+        a_i = np.zeros(2*numStrains)
+        # loop through strains and calculate the birth/death propensities
+        for i, strain in enumerate(self.smallStrains):
+            # NOTE these are temporary reaction propensities for debug
+            growprop = strain.k_grow
+            deathprop = strain.k_death
+            a_i[2*i] = growprop*strain.N_pop # growth propensity
+            a_i[2*i+1] = deathprop*strain.N_pop # death propensity
+        # return results
+        return a_i
+
+    def __rxndict(self, numStrains):
+        '''A private method used to generate a reaction dictionary for the
+        stochastic simulator. Each item is a numpy array of length numStrains
+        which describes the change in each species count
+
+        Parameters
+        ----------
+        int numStrains: the number of strains to simulate
+
+        Returns
+        -------
+        dict rxndict: python dict representing the possible reactions
+        '''
+        # declare rxndict to return
+        rxndict = {}
+        # generate two arrays for each strain (grow and death) and store
+        for i in range(numStrains):
+            growarray = np.zeros(numStrains)
+            # set ith element to be 1
+            growarray[i] = 1
+            # even elements are growth, odd are death
+            rxndict[2*i] = growarray
+            rxndict[2*i+1] = -growarray
+        # return resulting dict
+        return rxndict
+
+# debug script
+if __name__ == '__main__':
+    sim = thunderflask()
+    sim.simulate(T=1000, dT=600, timestep=0.1)
+    T_elapsed, index, ivals = sim.stochSim(600,0.1,0)
+    print('T_elapsed = {0}; index = {1}'.format(T_elapsed, index))
+    print('i values: {0}'.format(ivals[:5]))
+    trace = sim.poptrace[sim.smallStrains[0].ID]
+    plt.plot(trace[0:index])
+    plt.show()

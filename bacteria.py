@@ -6,7 +6,7 @@ from codonUtils import utils
 
 class strain():
     '''A class used to represent a bacterial strain in culture'''
-    def __init__(self, N_pop=100, k_grow=0.05, k_death=0.04, mu=1e-3,
+    def __init__(self, N_pop=100, k_grow=0.005, k_death=0.004, mu=1e-3,
         codonTable=None, ID=None, lineage=[]):
         '''The init function for the strain class.
 
@@ -35,7 +35,7 @@ class strain():
         self.k_death = k_death
         self.mu = mu
         self.codonTable = codonTable
-        self.ID = ID
+        self.ID = str(ID)
         self.lineage = lineage
 
 # run as script
