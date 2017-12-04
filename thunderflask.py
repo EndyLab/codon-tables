@@ -33,7 +33,7 @@ class thunderflask():
         # declare attributes
         self.bigStrains = []
         self.smallStrains = strains
-        self.poptrace = {}
+        self.deadStrains = []
         # partition initial strain list appropriately
         self.strainShuffle()
 
@@ -58,11 +58,6 @@ class thunderflask():
         Returns
         -------
         '''
-        # initialize population trace arrays for initial strains
-        for strain in self.bigStrains + self.smallStrains:
-            numSteps = int(np.ceil(T/timestep))
-            self.poptrace[strain.ID] = np.zeros(numSteps)
-            self.poptrace[strain.ID][0] = strain.N_pop
         # main loop
         T_tot = 0
         index = 0
@@ -78,7 +73,7 @@ class thunderflask():
         # return results of simulation
         return
 
-    def stochSim(self, T_approx):
+    def stochSim(self, T_approx, T_0):
         '''
         Method used to perform stochastic simulation of bacterial growth
         dynamics. Used to handle strains whose total population size is less
@@ -86,7 +81,8 @@ class thunderflask():
 
         Parameters
         ----------
-        float T_approx: the approximate simulation time (in sec)
+        - float T_approx: the approximate simulation time (in sec)
+        - float T_0: the current simulation time (in sec)
 
         Returns
         ------
@@ -96,13 +92,15 @@ class thunderflask():
         ###############################################
         # Initialize Stochastic Simulation attributes #
         ###############################################
-        # calculate a_tot for initial conditions to predict average timestep
-        a_i = self.__rxnpropensity()
-        a_tot = a_i.sum()
-        # declare number of iterations to perform and number of strains
-        numIter = int(np.ceil(T_approx*a_tot)) # dt ~ 1/atot --> iter = T/dt
+        # Declare number of strains
         numStrains = len(self.smallStrains)
+        # calculate a_tot for initial conditions to predict average timestep
+        a_i = self.__rxnpropensity(numStrains, T_0)
+        a_tot = a_i.sum()
+        # declare number of iterations to perform
+        numIter = int(np.ceil(T_approx*a_tot)) # dt ~ 1/atot --> iter = T/dt
         # construct dictionary of possible reactions
+        rxndict = self.__rxndict(numStrains)
         #####################
         # Declare variables #
         #####################
@@ -115,41 +113,32 @@ class thunderflask():
             trace[i, 0] = strain.N_pop
         # declare iteration counter variables
         T_elapsed = 0
-        # DEBUG: track reaction choices
-        ivals = []
         #############
         # Main Loop #
         #############
-        for timeind in range(numIter):
+        for timeind in range(1, numIter):
             # calculate reaction propensities
-            a_i = self.__rxnpropensity()
+            a_i = self.__rxnpropensity(numStrains, T_0 + T_elapsed)
             # calculate time to next reaction
             a_cumsum = np.cumsum(a_i)
             a_tot = a_cumsum[-1]
             tau = np.log(1/np.random.rand())/a_tot
-            taus.append(tau)
+            taus[timeind] = tau
             # choose next reaction
             rxnval = a_tot * np.random.rand()
             i = np.argmax(a_cumsum > rxnval)
-            ivals.append(i)
-            strainind = i//2
-            # even rxns are growth, odd are death
-            popchange = (-1)**i
-            # propagate populations
-            dIndex = int(np.ceil(tau/dt))
-            trace[:, index:index+dIndex+1] = np.broadcast_to(trace[:, index],
-                (dIndex+1, numStrains)).T
-            trace[strainind, index+dIndex+1] += popchange
-            # update T_elapsed and index
+            # update population sizes
+            trace[:,timeind] = trace[:,timeind-1] + rxndict[i]
+            # update T_elapsed
             T_elapsed += tau
-            index += dIndex
 
-        # update current population size for each strain and package traces
+        # update population size and timepoints for each strain
         for i, strain in enumerate(self.smallStrains):
-            strain.N_pop = trace[i, index]
-            self.poptrace[strain.ID][startind:startind+index+1] = trace[i,:index+1]
-        # return T_elapsed and current index
-        return T_elapsed, index, ivals
+            strain.N_pop = trace[i, -1]
+            strain.timepoints += (np.cumsum(taus) + T_0).tolist()
+            strain.poptrace += trace[i,:].tolist()
+        # return T_elapsed and time intervals
+        return T_elapsed, taus
 
     def numericalSim(self):
         '''
@@ -169,13 +158,14 @@ class thunderflask():
     #######################
     #   Private Methods   #
     #######################
-    def __rxnpropensity(self):
+    def __rxnpropensity(self, numStrains, t):
         '''A private method used to calculate the reaction propensities
         of the stochastic regime strains.
 
         Parameters
         ----------
-        None
+        - int numStrains: the number of strains to simulate
+        - float t: the current simulation time
 
         Returns
         -------
@@ -185,9 +175,9 @@ class thunderflask():
         a_i = np.zeros(2*numStrains)
         # loop through strains and calculate the birth/death propensities
         for i, strain in enumerate(self.smallStrains):
-            # NOTE these are temporary reaction propensities for debug
-            growprop = strain.k_grow
-            deathprop = strain.k_death
+            pd, pm, kd, km, td, tm = strain.growParam
+            growprop = pd/(1 + np.exp(kd*(td - t)))
+            deathprop = pm/(1 + np.exp(km*(tm - t)))
             a_i[2*i] = growprop*strain.N_pop # growth propensity
             a_i[2*i+1] = deathprop*strain.N_pop # death propensity
         # return results
@@ -221,11 +211,16 @@ class thunderflask():
 
 # debug script
 if __name__ == '__main__':
-    sim = thunderflask()
-    sim.simulate(T=1000, dT=600, timestep=0.1)
-    T_elapsed, index, ivals = sim.stochSim(600,0.1,0)
-    print('T_elapsed = {0}; index = {1}'.format(T_elapsed, index))
-    print('i values: {0}'.format(ivals[:5]))
-    trace = sim.poptrace[sim.smallStrains[0].ID]
-    plt.plot(trace[0:index])
+    # generate some strains
+    strains = []
+    for i in range(10):
+        strains.append(strain())
+    sim = thunderflask(strains)
+    T_elapsed, taus = sim.stochSim(600,5)
+    print('T_elapsed = {0}'.format(T_elapsed))
+    for i in range(5):
+        t = sim.smallStrains[i].timepoints
+        trace = sim.smallStrains[i].poptrace
+        plt.plot(t, trace, label='Strain {0}'.format(i))
+    plt.legend()
     plt.show()
