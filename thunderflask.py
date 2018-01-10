@@ -140,14 +140,72 @@ class thunderflask():
         # return T_elapsed and time intervals
         return T_elapsed, taus
 
-    def numericalSim(self):
+    def analyticSim(self, T_0, taus):
+        ''' Method used to simulate large population strains analytically. Uses
+        mathematical framework established in Horowitz et. al 2010.
+
+        Parameters
+        ----------
+        - float T_0: the current simulation time (in sec)
+        - np.array taus: the time steps between reactions (in sec)
+
+        Returns
+        -------
+        None
         '''
-        '''
+        # calculate array of timepoints
+        t_array = np.cumsum(taus) + T_0
+        # calculate population traces for each strain
+        for strain in self.bigStrains:
+            # unpack parameters
+            N_0 = strain.N_pop
+            pd, pm, kd, km, td, tm = strain.growParam
+            t_offset = strain.t_large
+            # adjust time parameters by time offset
+            td -= t_offset
+            tm -= t_offset
+            t_adjusted = t_array - t_offset
+            # repackage parameters and simulate
+            param = [pd, pm, kd, km, td, tm]
+            trace = self.__horowitzContinuous(N_0, param, t_adjusted)
+            # update strain attributes
+            strain.N_pop = trace[-1]
+            strain.timepoints += t_array.tolist()
+            strain.poptrace += trace.tolist()
+
+        # return from the method
         return
 
-    def strainShuffle(self):
+    def strainShuffle(self, T_curr, threshold):
+        ''' A method used handle exchanging strains between small and large
+        population groups.
+
+        Parameters
+        ----------
+        - float T_curr: current time in the simulation
+        - float threshold: the threshold population number that differentiates
+            small and large population strains
+
+        Returns
+        -------
+        None
         '''
-        '''
+        # loop through small strains
+        for i, strain in enumerate(self.smallStrains):
+            # move strain to bigStrains if above the threshold
+            if strain.N_pop > threshold:
+                strain.t_large = T_curr
+                strain.bigStrains.append(strain)
+                __ = strain.smallStrains.pop(i)
+                
+        # loop through large strains
+        for i, strain in enumerate(self.bigStrains):
+            # move strain to smallStrains if below the threshold
+            if strain.N_pop <= threshold:
+                strain.smallStrains.append(strain)
+                __ = strain.bigStrains.pop(i)
+
+        # return from method
         return
 
     def mutationSim(self):
@@ -183,7 +241,8 @@ class thunderflask():
         # return results
         return a_i
 
-    def __rxndict(self, numStrains):
+    @staticmethod
+    def __rxndict(numStrains):
         '''A private method used to generate a reaction dictionary for the
         stochastic simulator. Each item is a numpy array of length numStrains
         which describes the change in each species count
@@ -209,6 +268,30 @@ class thunderflask():
         # return resulting dict
         return rxndict
 
+    @staticmethod
+    def __horowitzContinuous(N_0, param, t_array):
+        ''' A static method used to calculate the growth rate of strains in the
+        continuous regime. Uses the birth and death probabilities from Horowitz
+        et al. 2010 and the closed form integration of these probabilities.
+
+        Parameters
+        ----------
+        - float N_0: strain size at initial time
+        - list param: strain specific parameters for simulation
+        - np.array t_array: array of timepoints over which to simulate
+
+        Returns
+        -------
+        np.array trace: array representing the population level at given times
+        '''
+        # unpack simulation parameters
+        pd, pm, kd, km, td, tm = param
+        # calculate curve and return population trace
+        trace = ( N_0 * np.exp((pd - pm)*t_array)
+            * ( (1 + np.exp(kd*(td - t_array)))**(pd/kd)
+            / (1 + np.exp(km*(tm - t_array)))**(pm/km)) )
+        return trace
+
 # debug script
 if __name__ == '__main__':
     # generate some strains
@@ -216,11 +299,13 @@ if __name__ == '__main__':
     for i in range(10):
         strains.append(strain())
     sim = thunderflask(strains)
-    T_elapsed, taus = sim.stochSim(600,5)
-    print('T_elapsed = {0}'.format(T_elapsed))
+    sim.bigStrains = sim.smallStrains
+    taus = np.ones(5000) * 0.1
+    sim.analyticSim(10, taus)
     for i in range(5):
-        t = sim.smallStrains[i].timepoints
-        trace = sim.smallStrains[i].poptrace
+        t = sim.bigStrains[i].timepoints
+        trace = sim.bigStrains[i].poptrace
         plt.plot(t, trace, label='Strain {0}'.format(i))
+    print(t[-1])
     plt.legend()
     plt.show()
