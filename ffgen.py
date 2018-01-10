@@ -63,6 +63,23 @@ class ffgen():
             # re-enqueue first nucleotide
             queue1.put(nt1)
 
+        # place the last 4 elements at least 2 substitutions away
+        availableCodons = set(utils.tripletCodons) - usedCodons
+        for i in range(len(unusedAA)):
+            # pick a codon from the available set and assign it an amino acid
+            codon = choice(tuple(availableCodons))
+            AA = choice(tuple(unusedAA))
+            table[codon] = AA
+            # update cache variables
+            availableCodons = ffgen.updateAvailable3(codon, availableCodons)
+            usedCodons.add(codon)
+            unusedAA.remove(AA)
+
+        # assign unused codons to STOP
+        remainingCodons = set(utils.tripletCodons) - usedCodons
+        for codon in remainingCodons:
+            table[codon] = '*'
+
         # return built table
         return table
 
@@ -70,7 +87,7 @@ class ffgen():
     def updateAvailable3(newCodon, availableSet):
         ''' A static method used to update the set of codons that can be used
         for triplet decoding fast fail code, given that a new codon is
-        occupied'''
+        occupied. Removes options that are '''
 
         # iterate over remaining codons
         copySet = list(availableSet)
