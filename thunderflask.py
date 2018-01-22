@@ -94,13 +94,13 @@ class thunderflask():
 
         Parameters
         ----------
-        - float T_approx: the approximate simulation time (in sec)
-        - float T_0: the current simulation time (in sec)
+        - float T_approx: the approximate simulation time (in generations)
+        - float T_0: the current simulation time (in generations)
 
         Returns
         ------
-        - float T_elapsed: the actual simulation time (in sec)
-        - np.array taus: the time steps between reactions (in sec)
+        - float T_elapsed: the actual simulation time (in generations)
+        - np.array taus: the time steps between reactions (in generations)
         '''
         ###############################################
         # Initialize Stochastic Simulation attributes #
@@ -136,14 +136,21 @@ class thunderflask():
             a_cumsum = np.cumsum(a_i)
             a_tot = a_cumsum[-1]
             tau = np.log(1/np.random.rand())/a_tot
-            taus[timeind] = tau
-            # choose next reaction
-            rxnval = a_tot * np.random.rand()
-            i = np.argmax(a_cumsum > rxnval)
-            # update population sizes
-            trace[:,timeind] = trace[:,timeind-1] + rxndict[i]
             # update T_elapsed
             T_elapsed += tau
+            # break simulation if too much time has elapsed
+            if T_elapsed > T_approx:
+                T_elapsed -= tau
+                break
+            # otherwise, update simulation
+            else:
+                # append time interval
+                taus[timeind] = tau
+                # choose next reaction
+                rxnval = a_tot * np.random.rand()
+                i = np.argmax(a_cumsum > rxnval)
+                # update population sizes
+                trace[:,timeind] = trace[:,timeind-1] + rxndict[i]
 
         # update population size and timepoints for each strain
         for i, strain in enumerate(self.smallStrains):
@@ -157,8 +164,8 @@ class thunderflask():
             ''' Method used to simulate large population strains analytically. Loosely follows the design outlined in Desai and Fisher 2007.
             Parameters
             ----------
-            - float T_0: the current simulation time (in sec)
-            - np.array taus: the time steps between reactions (in sec)
+            - float T_0: the current simulation time (in generations)
+            - np.array taus: the time steps between reactions (in generations)
 
             Returns
             -------
@@ -238,7 +245,7 @@ class thunderflask():
         for i, strain in enumerate(self.smallStrains):
             f = strain.fitness
             growprop = 1 + (f - f_avg)
-            deathprop = 1 
+            deathprop = 1
             a_i[2*i] = growprop*strain.N_pop # growth propensity
             a_i[2*i+1] = deathprop*strain.N_pop # death propensity
         # return results
