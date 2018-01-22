@@ -6,16 +6,14 @@ from codonUtils import utils
 
 class strain():
     '''A class used to represent a bacterial strain in culture'''
-    def __init__(self, N_pop=100, pd=0.5, pm=0.5, kd=0.3, km=0.2, td=10, tm=20,
-        mu=1e-3, t_large=0, codonTable=None, ID=None, lineage=[]):
+    def __init__(self, N_pop=100, fitness=0, mu=1e-3,
+        t_large=0, codonTable=None, ID=None, lineage=[]):
         '''The init function for the strain class.
 
         Parameters
         ----------
         - int/float N_pop: current population size of strain
-        - float pd, pm: maximum probability of cell division/death respectively
-        - float kd, km: time dependence of cell division/death respectively
-        - float td, tm: lag time for cell division/death respectively
+        - float fitness: the absolute fitness of an individual strain
         - float mu: mutation rate of bacterial strain (1/genome-gen)
         - float t_large: timestep in which a strain becomes large enough to
             simulate analytically
@@ -34,9 +32,9 @@ class strain():
             ID = uuid()
         # store parameters in class attributes
         self.N_pop = N_pop
-        self.growParam = [pd, pm, kd, km, td, tm]
-        self.t_large = t_large
+        self.fitness = fitness
         self.mu = mu
+        self.t_large = t_large
         self.codonTable = codonTable
         self.ID = str(ID)
         self.lineage = lineage
