@@ -37,40 +37,53 @@ class thunderflask():
         # partition initial strain list appropriately
         self.strainShuffle()
 
-    def simulate(self, T=36000, dT=600, timestep=1, n_stochthresh=1e4):
+    def simulate(self):
         '''
         Main method of thunderflask class. Used to run genetic diversity
         simulation. There are four main modules in this simulation:
 
-        (1) Stochastic -> (2) Numerical -> (3) Pop. Management -> (4) Mutations
+        (1) Mutations-> (2) Numerical -> (3) Stochastic -> (4) Pop. Management
 
         Consult documentation of each method for specific information. In brief,
-        small and large population strains are handled separately in (1) and
-        (2), and new mutations are generated in (4).
+        small and large population strains are handled separately in (2) and
+        (3), and new mutations are generated in (1).
+
+        Loosely follows the design outlined in Desai and Fisher 2007. The model
+        makes the following assumptions
+        - (on average) fixed population size N
+        - only beneficial mutations can establish (survive drift) and
+            contribute significantly to genetic diversity
+        - fixed beneficial mutation rate Ub; number of mutations drawn from
+            Poisson distribution
+        - does NOT assume mutations all have the same effect; drawn from
+            exponential distribution
+        - assumes populations reaching size of at least 3/[f - <f>] have
+            established
 
         Parameters
         ----------
-        - float T: the approximate total simulation time (in sec)
-        - float dT: the approximate simulation time (in sec) for each module
-        - float timestep: the temporal resolution (in sec) for population traces
-        - float n_stochthresh: the population size past which the code treats a
-            strain using the numerical integrator rather than the stochastic sim
+        None
+
         Returns
         -------
+        None
         '''
         # main loop
-        T_tot = 0
-        index = 0
-        #while T_tot < T:
-            # stochastic simulation
-            #T_stoch, ind_stoch = self.stochSim(dT, timestep, index)
+        # while not done:
             # numerical simulation
+
+            # stochastic simulation
 
             # strain swapping (if low pop strains get large or vice versa)
 
             # mutation simulation
 
         # return results of simulation
+        return
+
+    def mutationSim(self):
+        '''
+        '''
         return
 
     def stochSim(self, T_approx, T_0):
@@ -140,41 +153,37 @@ class thunderflask():
         # return T_elapsed and time intervals
         return T_elapsed, taus
 
-    def analyticSim(self, T_0, taus):
-        ''' Method used to simulate large population strains analytically. Uses
-        mathematical framework established in Horowitz et. al 2010.
+        def analyticSim(self, T_0, taus):
+            ''' Method used to simulate large population strains analytically. Loosely follows the design outlined in Desai and Fisher 2007.
+            Parameters
+            ----------
+            - float T_0: the current simulation time (in sec)
+            - np.array taus: the time steps between reactions (in sec)
 
-        Parameters
-        ----------
-        - float T_0: the current simulation time (in sec)
-        - np.array taus: the time steps between reactions (in sec)
+            Returns
+            -------
+            None
+            '''
+            # calculate array of timepoints
+            t_array = np.cumsum(taus) + T_0
+            # calculate population traces for each strain
+            for strain in self.bigStrains:
+                # unpack parameters
+                N_0 = strain.N_pop
+                pd, pm, kd, km, td, tm = strain.growParam
+                t_offset = strain.t_large
+                # adjust time parameters by time offset
+                td -= t_offset
+                tm -= t_offset
+                t_adjusted = t_array - t_offset
+                # simulate
+                # update strain attributes
+                strain.N_pop = trace[-1]
+                strain.timepoints += t_array.tolist()
+                strain.poptrace += trace.tolist()
 
-        Returns
-        -------
-        None
-        '''
-        # calculate array of timepoints
-        t_array = np.cumsum(taus) + T_0
-        # calculate population traces for each strain
-        for strain in self.bigStrains:
-            # unpack parameters
-            N_0 = strain.N_pop
-            pd, pm, kd, km, td, tm = strain.growParam
-            t_offset = strain.t_large
-            # adjust time parameters by time offset
-            td -= t_offset
-            tm -= t_offset
-            t_adjusted = t_array - t_offset
-            # repackage parameters and simulate
-            param = [pd, pm, kd, km, td, tm]
-            trace = self.__horowitzContinuous(N_0, param, t_adjusted)
-            # update strain attributes
-            strain.N_pop = trace[-1]
-            strain.timepoints += t_array.tolist()
-            strain.poptrace += trace.tolist()
-
-        # return from the method
-        return
+            # return from the method
+            return
 
     def strainShuffle(self, T_curr, threshold):
         ''' A method used handle exchanging strains between small and large
@@ -197,7 +206,7 @@ class thunderflask():
                 strain.t_large = T_curr
                 strain.bigStrains.append(strain)
                 __ = strain.smallStrains.pop(i)
-                
+
         # loop through large strains
         for i, strain in enumerate(self.bigStrains):
             # move strain to smallStrains if below the threshold
@@ -208,34 +217,28 @@ class thunderflask():
         # return from method
         return
 
-    def mutationSim(self):
-        '''
-        '''
-        return
-
     #######################
     #   Private Methods   #
     #######################
-    def __rxnpropensity(self, numStrains, t):
+    def __rxnpropensity(self, f_avg):
         '''A private method used to calculate the reaction propensities
         of the stochastic regime strains.
 
         Parameters
         ----------
-        - int numStrains: the number of strains to simulate
-        - float t: the current simulation time
+        float f_avg: the current average fitness in the population
 
         Returns
         -------
         np.array a_i: numpy array of reaction propensities
         '''
         # declare array for reaction propensities
-        a_i = np.zeros(2*numStrains)
+        a_i = np.zeros(2*len(self.smallStrains))
         # loop through strains and calculate the birth/death propensities
         for i, strain in enumerate(self.smallStrains):
-            pd, pm, kd, km, td, tm = strain.growParam
-            growprop = pd/(1 + np.exp(kd*(td - t)))
-            deathprop = pm/(1 + np.exp(km*(tm - t)))
+            f = strain.fitness
+            growprop = 1 + (f - f_avg)
+            deathprop = 1 
             a_i[2*i] = growprop*strain.N_pop # growth propensity
             a_i[2*i+1] = deathprop*strain.N_pop # death propensity
         # return results
