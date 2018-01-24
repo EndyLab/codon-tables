@@ -1,5 +1,6 @@
 #import dependencies
 import numpy as np
+from scipy.stats import halfgennorm
 import matplotlib.pyplot as plt
 import random
 from codonTable import codonTable
@@ -42,11 +43,11 @@ class thunderflask():
         Main method of thunderflask class. Used to run genetic diversity
         simulation. There are four main modules in this simulation:
 
-        (1) Mutations-> (2) Numerical -> (3) Stochastic -> (4) Pop. Management
+        (1) Stochastic -> (2) Numerical -> (3) Pop. Management -> (4) Mutations
 
         Consult documentation of each method for specific information. In brief,
-        small and large population strains are handled separately in (2) and
-        (3), and new mutations are generated in (1).
+        small and large population strains are handled separately in (1) and
+        (2), and new mutations are generated in (4).
 
         Loosely follows the design outlined in Desai and Fisher 2007. The model
         makes the following assumptions
@@ -81,11 +82,6 @@ class thunderflask():
         # return results of simulation
         return
 
-    def mutationSim(self):
-        '''
-        '''
-        return
-
     def stochSim(self, T_approx, T_0):
         '''
         Method used to perform stochastic simulation of bacterial growth
@@ -99,7 +95,7 @@ class thunderflask():
 
         Returns
         ------
-        - float T_elapsed: the actual simulation time (in generations)
+        - float T_curr: time at end of simulation (in generations)
         - np.array taus: the time steps between reactions (in generations)
         '''
         ###############################################
@@ -122,8 +118,8 @@ class thunderflask():
         # declare numpy array for storing time steps
         taus = np.zeros(numIter)
         # declare initial population sizes
-        for i, strain in enumerate(self.smallStrains):
-            trace[i, 0] = strain.N_pop
+        for i, bacteria in enumerate(self.smallStrains):
+            trace[i, 0] = bacteria.N_pop
         # declare iteration counter variables
         T_elapsed = 0
         #############
@@ -153,75 +149,110 @@ class thunderflask():
                 trace[:,timeind] = trace[:,timeind-1] + rxndict[i]
 
         # update population size and timepoints for each strain
-        for i, strain in enumerate(self.smallStrains):
-            strain.N_pop = trace[i, -1]
-            strain.timepoints += (np.cumsum(taus) + T_0).tolist()
-            strain.poptrace += trace[i,:].tolist()
+        for i, bacteria in enumerate(self.smallStrains):
+            bacteria.N_pop = trace[i, -1]
+            bacteria.timepoints += (np.cumsum(taus) + T_0).tolist()
+            bacteria.poptrace += trace[i,:].tolist()
         # return T_elapsed and time intervals
-        return T_elapsed, taus
+        T_curr = T_0 + T_elapsed
+        return T_curr, taus
 
-        def analyticSim(self, T_0, taus):
-            ''' Method used to simulate large population strains analytically. Loosely follows the design outlined in Desai and Fisher 2007.
-            Parameters
-            ----------
-            - float T_0: the current simulation time (in generations)
-            - np.array taus: the time steps between reactions (in generations)
+    def analyticSim(self, T_0, taus, f_avg):
+        ''' Method used to simulate large population strains analytically. Loosely follows the design outlined in Desai and Fisher 2007.
+        Parameters
+        ----------
+        - float T_0: the current simulation time (in generations)
+        - np.array taus: the time steps between reactions (in generations)
+        - float f_avg: the current average fitness in the population
 
-            Returns
-            -------
-            None
-            '''
-            # calculate array of timepoints
-            t_array = np.cumsum(taus) + T_0
-            # calculate population traces for each strain
-            for strain in self.bigStrains:
-                # unpack parameters
-                N_0 = strain.N_pop
-                pd, pm, kd, km, td, tm = strain.growParam
-                t_offset = strain.t_large
-                # adjust time parameters by time offset
-                td -= t_offset
-                tm -= t_offset
-                t_adjusted = t_array - t_offset
-                # simulate
-                # update strain attributes
-                strain.N_pop = trace[-1]
-                strain.timepoints += t_array.tolist()
-                strain.poptrace += trace.tolist()
+        Returns
+        -------
+        None
+        '''
+        # calculate array of timepoints
+        t = np.cumsum(taus)
+        t_array = t + T_0
+        # calculate population traces for each strain
+        for bacteria in self.bigStrains:
+            # unpack parameters
+            N_0 = bacteria.N_pop
+            f = bacteria.fitness - f_avg
+            # calculate exponential growth of strain
+            trace = N_0 * np.exp(f*t)
+            # update strain attributes
+            bacteria.N_pop = trace[-1]
+            bacteria.timepoints += t_array.tolist()
+            bacteria.poptrace += trace.tolist()
 
-            # return from the method
-            return
+        # return from the method
+        return
 
-    def strainShuffle(self, T_curr, threshold):
+    def strainShuffle(self, T_curr, f_avg, twiddle=2, min_threshold=100):
         ''' A method used handle exchanging strains between small and large
-        population groups.
+        population groups. Has one 'magic number' parameter to allow the user
+        to alter the establishment threshold. Enforces a minimum threshold for
+        analytic simulation as well.
 
         Parameters
         ----------
         - float T_curr: current time in the simulation
         - float threshold: the threshold population number that differentiates
             small and large population strains
+        - float f_avg: the current average fitness in the population
 
         Returns
         -------
         None
         '''
         # loop through small strains
-        for i, strain in enumerate(self.smallStrains):
+        for i, bacteria in enumerate(self.smallStrains):
+            # calculate the threshold
+            threshold = max(min_threshold, twiddle/(bacteria.fitness - f_avg))
             # move strain to bigStrains if above the threshold
-            if strain.N_pop > threshold:
-                strain.t_large = T_curr
-                strain.bigStrains.append(strain)
-                __ = strain.smallStrains.pop(i)
+            if bacteria.N_pop > threshold:
+                bacteria.t_est = T_curr
+                self.bigStrains.append(bacteria)
+                __ = self.smallStrains.pop(i)
 
         # loop through large strains
-        for i, strain in enumerate(self.bigStrains):
+        for i, bacteria in enumerate(self.bigStrains):
+            # calculate the threshold
+            threshold = max(min_threshold, twiddle/(bacteria.fitness - f_avg))
             # move strain to smallStrains if below the threshold
-            if strain.N_pop <= threshold:
-                strain.smallStrains.append(strain)
-                __ = strain.bigStrains.pop(i)
+            if bacteria.N_pop <= threshold:
+                self.smallStrains.append(bacteria)
+                __ = self.bigStrains.pop(i)
 
         # return from method
+        return
+
+    def mutationSim(self, dt, T_curr):
+        '''
+        Method used to determine the number of new strains to generate in a
+        given period of time. Also handles generation and storage of these new
+        strains via helper function(s). Relies on helper functions __mutNum()
+        to choose the number of mutants to generate, and __mutStrength() to
+        choose the strength of those mutations.
+
+        Parameters
+        ----------
+        - float dt: the time over which to generate mutants (in generations)
+        - float T_curr: current time in the simulation
+
+        Returns
+        -------
+        None
+        '''
+        # loop through established strains
+        for bacteria in self.bigStrains:
+            # calculate expected number of mutants (l_mut)
+            l_mut = self.__mutNum(bacteria, dt)
+            # generate a vector of mutation effects using __mutStrength()
+            dfs = self.__mutStrength()
+            # generate new strains from ancestor using __mutate()
+            self.__mutate(bacteria, dfs)
+
+        # return from function
         return
 
     #######################
@@ -242,12 +273,12 @@ class thunderflask():
         # declare array for reaction propensities
         a_i = np.zeros(2*len(self.smallStrains))
         # loop through strains and calculate the birth/death propensities
-        for i, strain in enumerate(self.smallStrains):
-            f = strain.fitness
+        for i, bacteria in enumerate(self.smallStrains):
+            f = bacteria.fitness
             growprop = 1 + (f - f_avg)
             deathprop = 1
-            a_i[2*i] = growprop*strain.N_pop # growth propensity
-            a_i[2*i+1] = deathprop*strain.N_pop # death propensity
+            a_i[2*i] = growprop*bacteria.N_pop # growth propensity
+            a_i[2*i+1] = deathprop*bacteria.N_pop # death propensity
         # return results
         return a_i
 
@@ -301,6 +332,87 @@ class thunderflask():
             * ( (1 + np.exp(kd*(td - t_array)))**(pd/kd)
             / (1 + np.exp(km*(tm - t_array)))**(pm/km)) )
         return trace
+
+    def __mutNum(self, bacteria, dt):
+        ''' A private method used to generate a number of mutations to
+        introduce in this generation. Assumes the generation of novel mutations
+        follows a Poisson Process whose expectation value is:
+
+                l_mut = (N*Ub)dt
+
+        Where N is the current strain population size, Ub is the per
+        genome-generation beneficial mutation rate, and dt is the time period
+        over which to generate mutants (in generations).
+
+        Parameters
+        ----------
+        - bacteria.strain bacteria: bacterial strain to mutate
+        - float dt: time period over which to mutate (in generations)
+
+        Returns
+        -------
+        int n_mut: number of mutants to introduce this generation
+        '''
+        # extract strain specific values and calculate expectation value
+        N = bacteria.N_pop
+        Ub = bacteria.mu
+        l_mut = N*Ub*dt
+        # randomly draw the number of mutants from a Poisson distribution
+        n_mut = numpy.random.poisson(l_mut)
+        return n_mut
+
+    def __mutStrength(self, n_mut, b, l):
+        ''' A private method used to generate a vector of mutation effects
+        given a number of mutants to generate. Draws these mutation effects
+        from a generalized halfnormal distribution of the form:
+
+                          b*l      -(l*s)^b
+                P(s) = ---------- e
+                       Gamma(1/b)
+
+        where s is the fitness strength, b is a shape parameter and l is a
+        scaling parameter. When b = 1, the distribution is exponential. When b
+        = 2, the distribution is normal.
+
+        Parameters
+        ----------
+        - int n_mut: number of mutants to introduce this generation
+        - float b: the shape parameter for the halfgennorm distribution
+        - float l: the scaling parameter for the halfgennorm distribution
+
+        Returns
+        -------
+        np.array dfs: the strengths of the mutations generated
+        '''
+        # make n_mut draws from a halfgennorm distribution
+        dfs = halfgennorm.rvs(b, scale=l, size=n_mut)
+        return dfs
+
+    def __mutate(self, bacteria, dfs, T_curr):
+        ''' A private method used to generate new strains and package them, given an ancestral strain and a vector of mutation effects.
+
+        Parameters
+        ----------
+        - bacteria.strain bacteria: bacterial strain to mutate
+        - np.array dfs: the strengths of the mutations to apply
+        - float T_curr: current time in the simulation
+
+        Returns
+        -------
+        None
+        '''
+        # extract cell lineage and fitness from ancestor strain
+        lineage = bacteria.lineage
+        f = bacteria.fitness
+        # loop through mutation strengths
+        for df in dfs:
+            # generate a new strain
+            mutant = strain(N_pop=1, t_0=T_curr, fitness=f+df, lineage=lineage)
+            # package resulting strain back into simulation
+            self.smallStrains.append(mutant)
+
+        # return from method
+        return
 
 # debug script
 if __name__ == '__main__':
