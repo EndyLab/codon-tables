@@ -3,6 +3,7 @@ import numpy as np
 from scipy.stats import halfgennorm
 import matplotlib.pyplot as plt
 import random
+from tqdm import tqdm
 from codonTable import codonTable
 from codonUtils import utils
 from bacteria import strain
@@ -35,10 +36,11 @@ class thunderflask():
         self.bigStrains = []
         self.smallStrains = strains
         self.deadStrains = []
+        self.estStrains = []
         # partition initial strain list appropriately
         self.strainShuffle(T_curr=0, f_avg=0)
 
-    def simulate(self):
+    def simulate(self, T=500, dt=1, T_0=0, mut_param=[1,2]):
         '''
         Main method of thunderflask class. Used to run genetic diversity
         simulation. There are four main modules in this simulation:
@@ -63,23 +65,33 @@ class thunderflask():
 
         Parameters
         ----------
-        None
+        - float T: the total time over which to simulate (in generations)
+        - float dt: the time epoch over which to run each epoch (in generations)
+        - float T_0: the initial time for the simulation (in generations)
+        - list<float> mut_param: a list of parameters to pass to mutation module
 
         Returns
         -------
         None
         '''
-        # main loop
-        # while not done:
-            # numerical simulation
-
-            # stochastic simulation
-
-            # strain swapping (if low pop strains get large or vice versa)
-
-            # mutation simulation
-
-        # return results of simulation
+        #initialize current time variable
+        T_curr = T_0
+        # loop until time is reached
+        # while T_curr < T:
+        for i in tqdm(range(int(T/dt))):
+            # update average fitness
+            f_avg = self.updateF_avg()
+            # run stochastic simulation
+            T_next, taus = self.stochSim(dt, T_curr, f_avg)
+            # run numerical simulation
+            self.analyticSim(T_curr, dt, taus, f_avg)
+            # run mutation simulation
+            self.mutationSim(dt, T_next, mut_param)
+            # shuffle strains
+            self.strainShuffle(T_next, f_avg)
+            # update current time
+            T_curr = T_next
+        # return when completed
         return
 
     def stochSim(self, T_approx, T_curr, f_avg):
@@ -99,6 +111,11 @@ class thunderflask():
         - float T_curr: time at end of simulation (in generations)
         - np.array taus: the time steps between reactions (in generations)
         '''
+        ######################################################
+        # Prune strains to remove any less fit than the mean #
+        ######################################################
+        self.smallStrains = [bact for bact in self.smallStrains
+            if bact.fitness >= f_avg]
         ###############################################
         # Initialize Stochastic Simulation attributes #
         ###############################################
@@ -163,11 +180,12 @@ class thunderflask():
         T_curr = T_curr + T_elapsed
         return T_curr, taus
 
-    def analyticSim(self, T_curr, taus, f_avg):
+    def analyticSim(self, T_curr, dt, taus, f_avg):
         ''' Method used to simulate large population strains analytically. Loosely follows the design outlined in Desai and Fisher 2007.
         Parameters
         ----------
         - float T_curr: the current simulation time (in generations)
+        - float dt: the time over which to simulate (in generations)
         - np.array taus: the time steps between reactions (in generations)
         - float f_avg: the current average fitness in the population
 
@@ -175,6 +193,9 @@ class thunderflask():
         -------
         None
         '''
+        # if taus is empty, generate an evenly spaced array of timepoints
+        if len(taus) == 0:
+            taus = np.linspace(0, dt, 10)
         # calculate array of timepoints
         t = np.cumsum(taus)
         t_array = t + T_curr
@@ -234,7 +255,8 @@ class thunderflask():
                 small_toRemove.append(i)
             # move dead strains to deadStrains
             elif bacteria.N_pop < 1:
-                self.deadStrains.append(bacteria)
+                # deadStrains gets too large to store in RAM, commented out
+                # self.deadStrains.append(bacteria)
                 small_toRemove.append(i)
         # remove small strains that are large or dead
         smallStrains = [bact for i, bact in enumerate(self.smallStrains)
@@ -259,7 +281,8 @@ class thunderflask():
                 big_toRemove.append(i)
             # move dead strains to deadStrains
             elif bacteria.N_pop < 1:
-                self.deadStrains.append(bacteria)
+                # deadStrains gets too large to store in RAM, commented out
+                # self.deadStrains.append(bacteria)
                 big_toRemove.append(i)
         # remove small strains that are large or dead
         bigStrains = [bact for i, bact in enumerate(self.bigStrains)
@@ -506,7 +529,6 @@ if __name__ == '__main__':
     mut_sim = [1, 1]
     sim.mutationSim(dt=1, T_curr=0, mut_param=mut_sim)
     # # begin debugging
-    # import ipdb; ipdb.set_trace()
     # run a round of stochastic simulation on these new mutants
     runtime = 50 # in generations
     T_curr = 0
