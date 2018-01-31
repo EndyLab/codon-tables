@@ -87,7 +87,7 @@ class ffgen():
     def updateAvailable3(newCodon, availableSet):
         ''' A static method used to update the set of codons that can be used
         for triplet decoding fast fail code, given that a new codon is
-        occupied. Removes options that are '''
+        occupied.''' 
 
         # iterate over remaining codons
         copySet = list(availableSet)

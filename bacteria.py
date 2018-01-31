@@ -30,7 +30,7 @@ class strain():
         '''
         # generate values for optional parameters
         if table == None:
-            table = utils.standardTable
+            table = codonTable(utils.standardTable)
         elif type(table) == dict:
             table = codonTable(table=table)
 
@@ -73,19 +73,16 @@ class strain():
             # initialize counters for the standard code and strain code
             count_sc = 0
             count = 0
-            # for each codon
-            for c1 in utils.tripletCodons:
-                # find set of neighboring codons (1 mutation away) and loop over
-                adjcodons = utils.getCodonNeighbors(c1)
-                for c2 in adjcodons:
-                    # increment counters if substitution is nonsynonymous AND
-                    # neither codon encodes for a STOP
-                    count_sc += not (
-                        (sc[c1] == '*' or sc[c2] == '*') or
-                        (sc[c1] == sc[c2]))
-                    count += not (
-                        (table[c1] == '*' or table[c2] == '*') or
-                        (table[c1] == table[c2]))
+            # for each codon pair, one mutation separated
+            for (c1, c2) in utils.tripletMutPairs:
+                # increment counters if substitution is nonsynonymous AND
+                # neither codon encodes for a STOP
+                count_sc += not (
+                    (sc[c1] == '*' or sc[c2] == '*') or
+                    (sc[c1] == sc[c2]))
+                count += not (
+                    (table[c1] == '*' or table[c2] == '*') or
+                    (table[c1] == table[c2]))
             # adjust mutation rate by ratio of substitutions
             mu_adj = mu*(count/count_sc)
 

@@ -519,7 +519,8 @@ class thunderflask():
         # loop through mutation strengths
         for df in dfs:
             # generate a new strain
-            mutant = strain(N_pop=1, t_0=T_curr, fitness=f+df, lineage=lineage)
+            mutant = strain(N_pop=1, table=bacteria.table,
+                t_0=T_curr, fitness=f+df, lineage=lineage)
             # package resulting strain back into simulation
             self.smallStrains.append(mutant)
 
