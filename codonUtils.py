@@ -218,6 +218,33 @@ class utils:
         return resiDistDict
 
     @staticmethod
+    def getCodonNeighbors(codon):
+        '''A static method used to get all codons one mutation away from the given codon.
+
+        Parameters
+        ----------
+        str codon: the codon whose neighbors will be returned
+
+        Returns
+        -------
+        list<str> neighbors: a list of codons one mutation away
+        '''
+        # declare list of neighbors
+        neighbors = []
+        # generate nearest neighbors by looping over codon positions
+        for i, base in enumerate(codon):
+            for nt in utils.rNTPs:
+                # handle if nt is the same as base
+                if nt == base:
+                    continue
+                # if not, generate new codon
+                c_new = codon[:i] + nt + codon[i+1:]
+                # store new codon in neighbors
+                neighbors.append(c_new)
+        # return resulting list
+        return neighbors
+
+    @staticmethod
     def tableToBlocks(table, blockStruct):
         '''A static method that takes a codon table and returns the
         representation as blocks of codons (individual tRNAs) as opposed to

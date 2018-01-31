@@ -1,4 +1,4 @@
-#import dependencies
+#mport dependencies
 import numpy as np
 from scipy.stats import halfgennorm
 import matplotlib.pyplot as plt
@@ -37,6 +37,10 @@ class thunderflask():
         self.smallStrains = strains
         self.deadStrains = []
         self.estStrains = []
+        self.f_trace = {
+            'timepoints' : [],
+            'fitnesses' : []
+        }
         # partition initial strain list appropriately
         self.strainShuffle(T_curr=0, f_avg=0)
 
@@ -79,8 +83,10 @@ class thunderflask():
         # loop until time is reached
         # while T_curr < T:
         for i in tqdm(range(int(T/dt))):
-            # update average fitness
+            # update average fitness and store
             f_avg = self.updateF_avg()
+            self.f_trace['timepoints'].append(T_curr)
+            self.f_trace['fitnesses'].append(f_avg)
             # run stochastic simulation
             T_next, taus = self.stochSim(dt, T_curr, f_avg)
             # run numerical simulation
@@ -252,6 +258,7 @@ class thunderflask():
             if bacteria.N_pop > threshold:
                 bacteria.t_est = T_curr
                 self.bigStrains.append(bacteria)
+                self.estStrains.append(bacteria)
                 small_toRemove.append(i)
             # move dead strains to deadStrains
             elif bacteria.N_pop < 1:
@@ -266,21 +273,23 @@ class thunderflask():
         # loop through large strains
         big_toRemove = []
         for i, bacteria in enumerate(self.bigStrains):
-            # calculate 1/(f-<f>)
-            f = bacteria.fitness
-            if f - f_avg <= 0.0:
-                threshold = np.infty
-            else:
-                threshold = twiddle/(f - f_avg)
-            # cap threshold between minimum and maximum allowed values
-            threshold = max(min_threshold, threshold)
-            threshold = min(max_threshold, threshold)
-            # move strain to smallStrains if below the threshold
-            if bacteria.N_pop <= threshold:
-                self.smallStrains.append(bacteria)
-                big_toRemove.append(i)
+            # note: commented block allows for full stochastic simulation, start to finish. However in the current iteration, strains are pruned when they have below average fitness. Thus traces are truncated. With this code commented out, and the if statement below changed to an elif statement, the full simulation can be run
+
+            # # calculate 1/(f-<f>)
+            # f = bacteria.fitness
+            # if f - f_avg <= 0.0:
+            #     threshold = np.infty
+            # else:
+            #     threshold = twiddle/(f - f_avg)
+            # # cap threshold between minimum and maximum allowed values
+            # threshold = max(min_threshold, threshold)
+            # threshold = min(max_threshold, threshold)
+            # # move strain to smallStrains if below the threshold
+            # if bacteria.N_pop <= threshold:
+            #     self.smallStrains.append(bacteria)
+            #     big_toRemove.append(i)
             # move dead strains to deadStrains
-            elif bacteria.N_pop < 1:
+            if bacteria.N_pop < 1:
                 # deadStrains gets too large to store in RAM, commented out
                 # self.deadStrains.append(bacteria)
                 big_toRemove.append(i)
@@ -478,7 +487,7 @@ class thunderflask():
         Parameters
         ----------
         - int n_mut: number of mutants to introduce this generation
-        - list<float>: the shape and scaling parameters for the halfgennorm
+        - list<float> mut_param: the shape and scaling parameters for the halfgennorm
             distribution
 
         Returns
