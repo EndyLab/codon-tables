@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.pylab as pl
 from thunderflask import thunderflask
 from bacteria import strain
 from tqdm import tqdm
@@ -10,11 +11,11 @@ LUCA = strain(N_pop=1e6, fitness=0, mu=2e-5)
 sim = thunderflask(LUCA)
 # initialize some variables
 T_curr = 0
-mut_param = [2, 3.5]
+mut_param = [1, 2]
 dt = 1
 
 # run simulation
-sim.simulate(300, dt, T_curr, mut_param)
+sim.simulate(400, dt, T_curr, mut_param)
 t = np.array(sim.f_trace['timepoints'])
 f = np.array(sim.f_trace['fitnesses'])
 fig, axarr = plt.subplots(2, sharex=True)
@@ -29,10 +30,14 @@ plt.xlabel('Time (in generations)')
 plt.ylabel('Fitness (%)')
 plt.show()
 
+n = len(sim.estStrains)
+colors = pl.cm.viridis(np.linspace(0,1,n))
 for i, bact in enumerate(sim.estStrains):
-    if i % 10 == 0:
+    if i % 2 == 0:
         t = bact.timepoints
         pop = bact.poptrace
-        plt.semilogy(t, pop)
+        plt.semilogy(t, pop, color=colors[i])
+plt.xlabel('Time (in generations)')
+plt.ylabel('Population Size')
 plt.title('Standard Code: Population Traces for Established Strains')
 plt.show()
