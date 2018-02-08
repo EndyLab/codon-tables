@@ -44,7 +44,8 @@ class thunderflask():
         # partition initial strain list appropriately
         self.strainShuffle(T_curr=0, f_avg=0)
 
-    def simulate(self, T=500, dt=1, T_0=0, mut_param=[1,2]):
+    def simulate(self, T=500, dt=1, T_0=0, mut_param=[1,2],
+            save_established=False, save_dead=False):
         '''
         Main method of thunderflask class. Used to run genetic diversity
         simulation. There are four main modules in this simulation:
@@ -73,6 +74,10 @@ class thunderflask():
         - float dt: the time epoch over which to run each epoch (in generations)
         - float T_0: the initial time for the simulation (in generations)
         - list<float> mut_param: a list of parameters to pass to mutation module
+        - bool save_established: tells the simulation whether or not to store
+            established species
+        - bool save_dead: tells the simulation whether or not to store dead
+            species
 
         Returns
         -------
@@ -94,7 +99,7 @@ class thunderflask():
             # run mutation simulation
             self.mutationSim(dt, T_next, mut_param)
             # shuffle strains
-            self.strainShuffle(T_next, f_avg)
+            self.strainShuffle(T_next, f_avg, save_established, save_dead)
             # update current time
             T_curr = T_next
         # return when completed
@@ -222,8 +227,9 @@ class thunderflask():
         return
 
     def strainShuffle(self, T_curr, f_avg, twiddle=2,
-        min_threshold=1e2, max_threshold=1e4):
-        ''' A method used handle exchanging strains between small and large
+            min_threshold=1e2, max_threshold=1e4,
+            save_established=False, save_dead=False):
+        ''' A method used to handle exchanging strains between small and large
         population groups. Has one 'magic number' parameter to allow the user
         to alter the establishment threshold. Enforces a minimum threshold for
         analytic simulation as well.
@@ -237,6 +243,10 @@ class thunderflask():
         - float twiddle: a user defined number to adjust the thresholding
         - float min_threshold: the minimum population allowed for thresholding
         - float max_threshold: the maximum population allowed for thresholding
+        - bool save_established: tells the simulation whether or not to store
+            established species
+        - bool save_dead: tells the simulation whether or not to store dead
+            species
 
         Returns
         -------
@@ -258,13 +268,16 @@ class thunderflask():
             if bacteria.N_pop > threshold:
                 bacteria.t_est = T_curr
                 self.bigStrains.append(bacteria)
-                self.estStrains.append(bacteria)
                 small_toRemove.append(i)
-            # move dead strains to deadStrains
+                # save established strains if requested
+                if save_established:
+                    self.estStrains.append(bacteria)
+            # kill dead strains
             elif bacteria.N_pop < 1:
-                # deadStrains gets too large to store in RAM, commented out
-                # self.deadStrains.append(bacteria)
                 small_toRemove.append(i)
+                # save dead strains if requested
+                if save_dead:
+                    self.deadStrains.append(bacteria)
         # remove small strains that are large or dead
         smallStrains = [bact for i, bact in enumerate(self.smallStrains)
             if i not in small_toRemove]
@@ -290,9 +303,11 @@ class thunderflask():
             #     big_toRemove.append(i)
             # move dead strains to deadStrains
             if bacteria.N_pop < 1:
-                # deadStrains gets too large to store in RAM, commented out
-                # self.deadStrains.append(bacteria)
+                # kill strain
                 big_toRemove.append(i)
+                # save dead strains if requested
+                if save_dead:
+                    self.deadStrains.append(bacteria)
         # remove small strains that are large or dead
         bigStrains = [bact for i, bact in enumerate(self.bigStrains)
             if i not in big_toRemove]

@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 # run several iterations
 # populate sim
-LUCA = strain(N_pop=1e6, fitness=0, mu=2e-5)
+LUCA = strain(N_pop=1e7, fitness=0, mu=2e-5)
 sim = thunderflask(LUCA)
 # initialize some variables
 T_curr = 0
@@ -15,7 +15,7 @@ mut_param = [1, 2]
 dt = 1
 
 # run simulation
-sim.simulate(400, dt, T_curr, mut_param)
+sim.simulate(200, dt, T_curr, mut_param)
 t = np.array(sim.f_trace['timepoints'])
 f = np.array(sim.f_trace['fitnesses'])
 fig, axarr = plt.subplots(2, sharex=True)
