@@ -95,11 +95,12 @@ class thunderflask():
             # run stochastic simulation
             T_next, taus = self.stochSim(dt, T_curr, f_avg)
             # run numerical simulation
-            self.analyticSim(T_curr, dt, taus, f_avg)
+            self.analyticSim(T_curr=T_curr, dt=dt, taus=taus, f_avg=f_avg)
             # run mutation simulation
-            self.mutationSim(dt, T_next, mut_param)
+            self.mutationSim(T_curr=T_next, dt=dt, mut_param=mut_param)
             # shuffle strains
-            self.strainShuffle(T_next, f_avg, save_established, save_dead)
+            self.strainShuffle(T_curr=T_next, f_avg=f_avg, twiddle=2,
+                save_established=save_established, save_dead=save_dead)
             # update current time
             T_curr = T_next
         # return when completed
@@ -316,7 +317,7 @@ class thunderflask():
         # return from method
         return
 
-    def mutationSim(self, dt, T_curr, mut_param):
+    def mutationSim(self, T_curr, dt, mut_param):
         '''
         Method used to determine the number of new strains to generate in a
         given period of time. Also handles generation and storage of these new
