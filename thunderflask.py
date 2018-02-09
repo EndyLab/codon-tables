@@ -1,4 +1,4 @@
-#mport dependencies
+#import dependencies
 import numpy as np
 from scipy.stats import halfgennorm
 import matplotlib.pyplot as plt
@@ -440,22 +440,22 @@ class thunderflask():
         -------
         np.array a_i: numpy array of reaction propensities
         '''
-        # declare array for reaction propensities
-        a_i = np.zeros(2*len(self.smallStrains))
+        # declare array for unweighted propensities
+        props = np.ones(2*len(self.smallStrains))
         # if populations is None, generate from sim object
         if len(populations) == 0:
             populations = np.zeros(len(self.smallStrains))
             for i, bacteria in enumerate(self.smallStrains):
                 populations[i] = bacteria.N_pop
-        # loop through strains and calculate the birth/death propensities
+        # copy population sizes (to have two elements per strain)
+        populations = np.repeat(populations, 2)
+        # loop through strains and calculate the birth propensities
         for i, bacteria in enumerate(self.smallStrains):
+            # update birth propensity (death is always 1)
             f = bacteria.fitness
-            growprop = 1 + (f - f_avg)
-            deathprop = 1
-            a_i[2*i] = growprop * populations[i] # growth propensity
-            a_i[2*i+1] = deathprop * populations[i] # death propensity
+            props[2*i] = 1 + (f - f_avg)
         # return results
-        return a_i
+        return props*populations
 
     @staticmethod
     def __rxndict(numStrains):
@@ -601,36 +601,3 @@ class thunderflask():
         # return from method
         return
 
-# debug script
-if __name__ == '__main__':
-    # generate a single strain to begin with
-    LUCA = strain(N_pop = 1e6)
-    # create simulator object
-    sim = thunderflask(LUCA)
-    # artificially increase LUCA's fitness by setting f_avg = 0.1
-    f_avg = 1.0
-    # lets do some mutations!!
-    mut_sim = [1, 1]
-    sim.mutationSim(dt=1, T_curr=0, mut_param=mut_sim)
-    # # begin debugging
-    # run a round of stochastic simulation on these new mutants
-    runtime = 50 # in generations
-    T_curr = 0
-    sim.stochSim(runtime, T_curr, f_avg)
-
-    # # debug zombie strains
-    # bonk = strain(N_pop=1, fitness=0)
-    # sim.smallStrains.append(bonk)
-    # runtime = 5 # in generations
-    # T_curr = 0
-    # sim.stochSim(runtime, T_curr, f_avg)
-    # plot some of the trajectories of the stochastic strains
-    for i in range(10):
-        bact = sim.smallStrains[i]
-        t = bact.timepoints
-        pop = bact.poptrace
-        plt.plot(t, pop)
-    plt.show()
-    # # test analytic component
-    # taus = np.random.rand(1000)*0.01
-    # sim.analyticSim(T_curr=0, taus=taus, f_avg=f_avg)

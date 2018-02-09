@@ -13,7 +13,7 @@ sim = thunderflask(LUCA)
 # initialize some variables
 T_curr = 0
 mut_param = [1, 2]
-dt = 0.01
+dt = 1
 
 # run simulation
 sim.simulate(300, dt, T_curr, mut_param, save_all=True, prune_strains=False)
