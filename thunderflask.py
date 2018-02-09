@@ -37,12 +37,20 @@ class thunderflask():
         self.smallStrains = strains
         self.deadStrains = []
         self.estStrains = []
+        self.f_avgtrace = {
+            'timepoints' : [],
+            'f_avg' : []
+        }
         self.f_trace = {
             'timepoints' : [],
-            'fitnesses' : []
+            'fitnesses' : [],
         }
+        self.poptrace = {}
         # partition initial strain list appropriately
         self.strainShuffle(T_curr=0, f_avg=0)
+        # populate poptrace key/value pairs
+        for bact in strains:
+            self.poptrace[bact.ID] = ([], [])
 
     def simulate(self, T=500, dt=1, T_0=0, mut_param=[1,2],
             save_established=False, save_dead=False):
@@ -88,10 +96,8 @@ class thunderflask():
         # loop until time is reached
         # while T_curr < T:
         for i in tqdm(range(int(T/dt))):
-            # update average fitness and store
-            f_avg = self.updateF_avg()
-            self.f_trace['timepoints'].append(T_curr)
-            self.f_trace['fitnesses'].append(f_avg)
+            # update average fitness
+            f_avg, fs = self.updateF_avg()
             # run stochastic simulation
             T_next, taus = self.stochSim(dt, T_curr, f_avg)
             # run numerical simulation
@@ -103,6 +109,8 @@ class thunderflask():
                 save_established=save_established, save_dead=save_dead)
             # update current time
             T_curr = T_next
+            # update traces
+            self.tracer(T_curr, f_avg, fs)
         # return when completed
         return
 
@@ -348,7 +356,9 @@ class thunderflask():
         return
 
     def updateF_avg(self):
-        '''A method used to calculate the current average fitness of the system. Weights the average by the population size of each strain.
+        '''A method used to calculate the current average fitness of the
+        system. Weights the average by the population size of each strain. Also
+        returns the fitnesses of every living strain as an array
 
         Parameters
         ----------
@@ -357,6 +367,7 @@ class thunderflask():
         Returns
         -------
         float f_avg: updated average fitness of the population
+        np.array fs: array of fitnesses
         '''
         # declare lists of population sizes and fitnesses
         pops = []
@@ -369,9 +380,35 @@ class thunderflask():
         pops = np.array(pops)
         fs = np.array(fs)
         f_weighted = fs*pops
-        # calculate average and return
+        # calculate average and return appropriate variables
         f_avg = f_weighted.sum()/pops.sum()
-        return f_avg
+        return f_avg, fs
+
+    def tracer(self, T_curr, f_avg, fs):
+        '''A method used to update appropriate metric traces
+
+        Parameters
+        ----------
+        - float T_curr: the current simulation time (in generations)
+        - float f_avg: the current average fitness in the population
+        - np.array fs: array of fitnesses
+
+        Returns
+        -------
+        None
+        '''
+        # update f_avgtrace
+        self.f_avgtrace['timepoints'].append(T_curr)
+        self.f_avgtrace['f_avg'].append(f_avg)
+        # update poptrace
+        for bact in self.smallStrains + self.bigStrains:
+            self.poptrace[bact.ID][0].append(T_curr)
+            self.poptrace[bact.ID][1].append(bact.N_pop)
+        # update f_trace
+        self.f_trace['timepoints'].append(T_curr)
+        self.f_trace['fitnesses'].append(fs)
+        # return from function
+        return
 
     #######################
     #   Private Methods   #
@@ -517,7 +554,9 @@ class thunderflask():
         return dfs
 
     def __mutate(self, bacteria, dfs, T_curr):
-        ''' A private method used to generate new strains and package them, given an ancestral strain and a vector of mutation effects.
+        ''' A private method used to generate new strains and package them,
+        given an ancestral strain and a vector of mutation effects. Also
+        creates a key/value pair in self.poptrace dict.
 
         Parameters
         ----------
@@ -539,6 +578,8 @@ class thunderflask():
                 t_0=T_curr, fitness=f+df, lineage=lineage)
             # package resulting strain back into simulation
             self.smallStrains.append(mutant)
+            # create a key value pair in self.poptrace
+            self.poptrace[mutant.ID] = ([], [])
 
         # return from method
         return
