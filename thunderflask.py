@@ -36,15 +36,26 @@ class thunderflask():
         self.bigStrains = []
         self.smallStrains = strains
         self.deadStrains = []
+        self.allStrains = strains
         self.estStrains = []
+        self.f_avgtrace = {
+            'timepoints' : [],
+            'f_avg' : []
+        }
         self.f_trace = {
             'timepoints' : [],
-            'fitnesses' : []
+            'fitnesses' : [],
         }
+        self.poptrace = {}
         # partition initial strain list appropriately
-        self.strainShuffle(T_curr=0, f_avg=0)
+        self.strainShuffle(T_curr=0, f_avg=0, save_established=True)
+        # populate poptrace key/value pairs
+        for bact in strains:
+            self.poptrace[bact.ID] = ([], [])
 
-    def simulate(self, T=500, dt=1, T_0=0, mut_param=[1,2]):
+    def simulate(self, T=500, dt=1, T_0=0, mut_param=[1,2], twiddle=3,
+            save_established=False, save_dead=False, save_all=False,
+            prune_strains=True):
         '''
         Main method of thunderflask class. Used to run genetic diversity
         simulation. There are four main modules in this simulation:
@@ -73,6 +84,14 @@ class thunderflask():
         - float dt: the time epoch over which to run each epoch (in generations)
         - float T_0: the initial time for the simulation (in generations)
         - list<float> mut_param: a list of parameters to pass to mutation module
+        - float twiddle: a user defined number to adjust the thresholding
+        - bool save_established: tells the simulation whether or not to store
+            established species
+        - bool save_dead: tells the simulation whether or not to store dead
+            species
+        - bool save_all: tells simulation whether or not to to save all species
+        - bool prune_strains: tells the simulation whether or not to prune
+            small strains below mean fitness
 
         Returns
         -------
@@ -83,24 +102,28 @@ class thunderflask():
         # loop until time is reached
         # while T_curr < T:
         for i in tqdm(range(int(T/dt))):
-            # update average fitness and store
-            f_avg = self.updateF_avg()
-            self.f_trace['timepoints'].append(T_curr)
-            self.f_trace['fitnesses'].append(f_avg)
+            # update average fitness
+            f_avg, fs = self.updateF_avg()
             # run stochastic simulation
-            T_next, taus = self.stochSim(dt, T_curr, f_avg)
+            T_next, __ = self.stochSim(dt, T_curr, f_avg)
             # run numerical simulation
-            self.analyticSim(T_curr, dt, taus, f_avg)
+            res = 10
+            taus = np.ones(res)/res
+            self.analyticSim(T_curr=T_curr, dt=dt, taus=taus, f_avg=f_avg)
             # run mutation simulation
-            self.mutationSim(dt, T_next, mut_param)
+            self.mutationSim(T_curr=T_next, dt=dt, mut_param=mut_param,
+                save_all=save_all)
             # shuffle strains
-            self.strainShuffle(T_next, f_avg)
+            self.strainShuffle(T_curr=T_next, f_avg=f_avg, twiddle=twiddle,
+                save_established=save_established, save_dead=save_dead)
             # update current time
             T_curr = T_next
+            # update traces
+            self.tracer(T_curr, f_avg, fs)
         # return when completed
         return
 
-    def stochSim(self, T_approx, T_curr, f_avg):
+    def stochSim(self, T_approx, T_curr, f_avg, prune_strains=True):
         '''
         Method used to perform stochastic simulation of bacterial growth
         dynamics. Used to handle strains whose total population size is less
@@ -111,47 +134,47 @@ class thunderflask():
         - float T_approx: the approximate simulation time (in generations)
         - float T_curr: the current simulation time (in generations)
         - float f_avg: the current average fitness in the population
+        - bool prune_strains: tells the simulation whether or not to prune
+            small strains below mean fitness
 
         Returns
         ------
         - float T_curr: time at end of simulation (in generations)
         - np.array taus: the time steps between reactions (in generations)
         '''
-        ######################################################
-        # Prune strains to remove any less fit than the mean #
-        ######################################################
-        self.smallStrains = [bact for bact in self.smallStrains
-            if bact.fitness >= f_avg]
+        # Optionally Prune strains to remove any less fit than the mean
+        if prune_strains:
+            self.smallStrains = [bact for bact in self.smallStrains
+                if bact.fitness >= f_avg]
         ###############################################
         # Initialize Stochastic Simulation attributes #
         ###############################################
         # Declare number of strains
         numStrains = len(self.smallStrains)
-        # calculate a_tot for initial conditions to predict average timestep
-        a_i = self.__rxnpropensity(f_avg)
-        a_tot = a_i.sum()
-        # declare number of iterations to perform; expect pop to double in 1 gen
-        numIter = int(2*np.ceil(T_approx*a_tot)) # dt ~ 1/atot --> iter = T/dt
+        # Exit sim if the number of strains is zero
+        if numStrains == 0:
+            return T_curr, []
         # construct dictionary of possible reactions
         rxndict = self.__rxndict(numStrains)
         #####################
         # Declare variables #
         #####################
         # declare numpy array of traces for this epoch
-        trace = np.zeros((numStrains, numIter))
-        # declare numpy array for storing time steps
-        taus = np.zeros(numIter)
+        trace = np.zeros(numStrains)
+        # declare list for storing time steps
+        taus = []
         # declare initial population sizes
         for i, bacteria in enumerate(self.smallStrains):
-            trace[i, 0] = bacteria.N_pop
-        # declare iteration counter variables
-        T_elapsed = 0
+            trace[i] = bacteria.N_pop
+        # declare end condition
+        T_end = T_curr + T_approx
         #############
         # Main Loop #
         #############
-        for timeind in range(1, numIter):
+        while T_curr < T_end:
             # calculate reaction propensities
-            a_i = self.__rxnpropensity(f_avg, trace[:, timeind-1])
+            a_i = self.__rxnpropensity(f_avg, trace)
+            # break
             # calculate time to next reaction (break if rxnprop go to 0)
             a_cumsum = np.cumsum(a_i)
             a_tot = a_cumsum[-1]
@@ -159,31 +182,24 @@ class thunderflask():
                 timeind -= 1
                 break
             tau = np.log(1/np.random.rand())/a_tot
-            # update T_elapsed
-            T_elapsed += tau
-            # break simulation if too much time has elapsed
-            if T_elapsed > T_approx:
-                timeind -= 1
-                T_elapsed -= tau
-                break
-            # otherwise, update simulation
-            else:
-                # append time interval
-                taus[timeind] = tau
-                # choose next reaction
-                rxnval = a_tot * np.random.rand()
-                i = np.argmax(a_cumsum > rxnval)
-                # update population sizes
-                trace[:,timeind] = trace[:,timeind-1] + rxndict[i]
+            # update T_curr
+            T_curr += tau
+            # append time interval
+            taus.append(tau)
+            # choose next reaction
+            rxnval = a_tot * np.random.rand()
+            i = np.argmax(a_cumsum > rxnval)
+            # update population sizes
+            trace += rxndict[i]
+            # update population trace for each strain
+            ind = int(i/2)
+            self.smallStrains[ind].timepoints.append(T_curr)
+            self.smallStrains[ind].poptrace.append(trace[ind])
 
-        # update population size and timepoints for each strain
+        # update population size for each strain
         for i, bacteria in enumerate(self.smallStrains):
-            bacteria.N_pop = trace[i, timeind]
-            bacteria.timepoints += (np.cumsum(taus[:timeind+1]) +
-                T_curr).tolist()
-            bacteria.poptrace += trace[i,:timeind+1].tolist()
+            bacteria.N_pop = trace[i]
         # return T_elapsed and time intervals
-        T_curr = T_curr + T_elapsed
         return T_curr, taus
 
     def analyticSim(self, T_curr, dt, taus, f_avg):
@@ -221,9 +237,11 @@ class thunderflask():
         # return from the method
         return
 
-    def strainShuffle(self, T_curr, f_avg, twiddle=2,
-        min_threshold=1e2, max_threshold=1e4):
-        ''' A method used handle exchanging strains between small and large
+    def strainShuffle(self, T_curr, f_avg, twiddle=3,
+            min_threshold=1e2, max_threshold=1e4,
+            save_established=False, save_dead=False,
+            prune_strains=True):
+        ''' A method used to handle exchanging strains between small and large
         population groups. Has one 'magic number' parameter to allow the user
         to alter the establishment threshold. Enforces a minimum threshold for
         analytic simulation as well.
@@ -237,6 +255,12 @@ class thunderflask():
         - float twiddle: a user defined number to adjust the thresholding
         - float min_threshold: the minimum population allowed for thresholding
         - float max_threshold: the maximum population allowed for thresholding
+        - bool save_established: tells the simulation whether or not to store
+            established species
+        - bool save_dead: tells the simulation whether or not to store dead
+            species
+        - bool prune_strains: tells the simulation whether or not to prune
+            small strains below mean fitness
 
         Returns
         -------
@@ -258,13 +282,16 @@ class thunderflask():
             if bacteria.N_pop > threshold:
                 bacteria.t_est = T_curr
                 self.bigStrains.append(bacteria)
-                self.estStrains.append(bacteria)
                 small_toRemove.append(i)
-            # move dead strains to deadStrains
+                # save established strains if requested
+                if save_established:
+                    self.estStrains.append(bacteria)
+            # kill dead strains
             elif bacteria.N_pop < 1:
-                # deadStrains gets too large to store in RAM, commented out
-                # self.deadStrains.append(bacteria)
                 small_toRemove.append(i)
+                # save dead strains if requested
+                if save_dead:
+                    self.deadStrains.append(bacteria)
         # remove small strains that are large or dead
         smallStrains = [bact for i, bact in enumerate(self.smallStrains)
             if i not in small_toRemove]
@@ -273,26 +300,35 @@ class thunderflask():
         # loop through large strains
         big_toRemove = []
         for i, bacteria in enumerate(self.bigStrains):
-            # note: commented block allows for full stochastic simulation, start to finish. However in the current iteration, strains are pruned when they have below average fitness. Thus traces are truncated. With this code commented out, and the if statement below changed to an elif statement, the full simulation can be run
-
-            # # calculate 1/(f-<f>)
-            # f = bacteria.fitness
-            # if f - f_avg <= 0.0:
-            #     threshold = np.infty
-            # else:
-            #     threshold = twiddle/(f - f_avg)
-            # # cap threshold between minimum and maximum allowed values
-            # threshold = max(min_threshold, threshold)
-            # threshold = min(max_threshold, threshold)
-            # # move strain to smallStrains if below the threshold
-            # if bacteria.N_pop <= threshold:
-            #     self.smallStrains.append(bacteria)
-            #     big_toRemove.append(i)
-            # move dead strains to deadStrains
-            if bacteria.N_pop < 1:
-                # deadStrains gets too large to store in RAM, commented out
-                # self.deadStrains.append(bacteria)
+            # check thresholding if prune_strains=True
+            if not prune_strains:
+                # calculate 1/(f-<f>)
+                f = bacteria.fitness
+                if f - f_avg <= 0.0:
+                    threshold = np.infty
+                else:
+                    threshold = twiddle/(f - f_avg)
+                # cap threshold between minimum and maximum allowed values
+                threshold = max(min_threshold, threshold)
+                threshold = min(max_threshold, threshold)
+                # move strain to smallStrains if below the threshold
+                if bacteria.N_pop <= threshold:
+                    self.smallStrains.append(bacteria)
+                    big_toRemove.append(i)
+                # check for death
+                elif bacteria.N_pop < 1:
+                    # kill strain
+                    big_toRemove.append(i)
+                    # save dead strains if requested
+                    if save_dead:
+                        self.deadStrains.append(bacteria)
+            # if not prune strains, just check for death
+            elif bacteria.N_pop < 1:
+                # kill strain
                 big_toRemove.append(i)
+                # save dead strains if requested
+                if save_dead:
+                    self.deadStrains.append(bacteria)
         # remove small strains that are large or dead
         bigStrains = [bact for i, bact in enumerate(self.bigStrains)
             if i not in big_toRemove]
@@ -301,7 +337,7 @@ class thunderflask():
         # return from method
         return
 
-    def mutationSim(self, dt, T_curr, mut_param):
+    def mutationSim(self, T_curr, dt, mut_param, save_all=False):
         '''
         Method used to determine the number of new strains to generate in a
         given period of time. Also handles generation and storage of these new
@@ -314,6 +350,7 @@ class thunderflask():
         - float dt: the time over which to generate mutants (in generations)
         - float T_curr: current time in the simulation
         - list<float> mut_param: a list of floats to pass to __mutStrength()
+        - bool save_all: tells simulation to save in self.allStrains
 
         Returns
         -------
@@ -326,13 +363,15 @@ class thunderflask():
             # generate a vector of mutation effects using __mutStrength()
             dfs = self.__mutStrength(n_mut, mut_param)
             # generate new strains from ancestor using __mutate()
-            self.__mutate(bacteria, dfs, T_curr)
+            self.__mutate(bacteria, dfs, T_curr, save_all)
 
         # return from function
         return
 
     def updateF_avg(self):
-        '''A method used to calculate the current average fitness of the system. Weights the average by the population size of each strain.
+        '''A method used to calculate the current average fitness of the
+        system. Weights the average by the population size of each strain. Also
+        returns the fitnesses of every living strain as an array
 
         Parameters
         ----------
@@ -341,6 +380,7 @@ class thunderflask():
         Returns
         -------
         float f_avg: updated average fitness of the population
+        np.array fs: array of fitnesses
         '''
         # declare lists of population sizes and fitnesses
         pops = []
@@ -353,9 +393,35 @@ class thunderflask():
         pops = np.array(pops)
         fs = np.array(fs)
         f_weighted = fs*pops
-        # calculate average and return
+        # calculate average and return appropriate variables
         f_avg = f_weighted.sum()/pops.sum()
-        return f_avg
+        return f_avg, fs
+
+    def tracer(self, T_curr, f_avg, fs):
+        '''A method used to update appropriate metric traces
+
+        Parameters
+        ----------
+        - float T_curr: the current simulation time (in generations)
+        - float f_avg: the current average fitness in the population
+        - np.array fs: array of fitnesses
+
+        Returns
+        -------
+        None
+        '''
+        # update f_avgtrace
+        self.f_avgtrace['timepoints'].append(T_curr)
+        self.f_avgtrace['f_avg'].append(f_avg)
+        # update poptrace
+        for bact in self.smallStrains + self.bigStrains:
+            self.poptrace[bact.ID][0].append(T_curr)
+            self.poptrace[bact.ID][1].append(bact.N_pop)
+        # # update f_trace
+        # self.f_trace['timepoints'].append(T_curr)
+        # self.f_trace['fitnesses'].append(fs)
+        # return from function
+        return
 
     #######################
     #   Private Methods   #
@@ -374,22 +440,22 @@ class thunderflask():
         -------
         np.array a_i: numpy array of reaction propensities
         '''
-        # declare array for reaction propensities
-        a_i = np.zeros(2*len(self.smallStrains))
+        # declare array for unweighted propensities
+        props = np.ones(2*len(self.smallStrains))
         # if populations is None, generate from sim object
         if len(populations) == 0:
             populations = np.zeros(len(self.smallStrains))
             for i, bacteria in enumerate(self.smallStrains):
                 populations[i] = bacteria.N_pop
-        # loop through strains and calculate the birth/death propensities
+        # copy population sizes (to have two elements per strain)
+        populations = np.repeat(populations, 2)
+        # loop through strains and calculate the birth propensities
         for i, bacteria in enumerate(self.smallStrains):
+            # update birth propensity (death is always 1)
             f = bacteria.fitness
-            growprop = 1 + (f - f_avg)
-            deathprop = 1
-            a_i[2*i] = growprop * populations[i] # growth propensity
-            a_i[2*i+1] = deathprop * populations[i] # death propensity
+            props[2*i] = 1 + (f - f_avg)
         # return results
-        return a_i
+        return props*populations
 
     @staticmethod
     def __rxndict(numStrains):
@@ -500,14 +566,18 @@ class thunderflask():
         dfs = halfgennorm.rvs(beta, scale=lam, size=n_mut)/100
         return dfs
 
-    def __mutate(self, bacteria, dfs, T_curr):
-        ''' A private method used to generate new strains and package them, given an ancestral strain and a vector of mutation effects.
+    def __mutate(self, bacteria, dfs, T_curr, save_all=False):
+        ''' A private method used to generate new strains and package them,
+        given an ancestral strain and a vector of mutation effects. Also
+        creates a key/value pair in self.poptrace dict. Optionally saves to all
+        strains
 
         Parameters
         ----------
         - bacteria.strain bacteria: bacterial strain to mutate
         - np.array dfs: the strengths of the mutations to apply
         - float T_curr: current time in the simulation
+        - bool save_all: tells simulation to save in self.allStrains
 
         Returns
         -------
@@ -523,40 +593,11 @@ class thunderflask():
                 t_0=T_curr, fitness=f+df, lineage=lineage)
             # package resulting strain back into simulation
             self.smallStrains.append(mutant)
+            if save_all:
+                self.allStrains.append(mutant)
+            # create a key value pair in self.poptrace
+            self.poptrace[mutant.ID] = ([], [])
 
         # return from method
         return
 
-# debug script
-if __name__ == '__main__':
-    # generate a single strain to begin with
-    LUCA = strain(N_pop = 1e6)
-    # create simulator object
-    sim = thunderflask(LUCA)
-    # artificially increase LUCA's fitness by setting f_avg = 0.1
-    f_avg = 1.0
-    # lets do some mutations!!
-    mut_sim = [1, 1]
-    sim.mutationSim(dt=1, T_curr=0, mut_param=mut_sim)
-    # # begin debugging
-    # run a round of stochastic simulation on these new mutants
-    runtime = 50 # in generations
-    T_curr = 0
-    sim.stochSim(runtime, T_curr, f_avg)
-
-    # # debug zombie strains
-    # bonk = strain(N_pop=1, fitness=0)
-    # sim.smallStrains.append(bonk)
-    # runtime = 5 # in generations
-    # T_curr = 0
-    # sim.stochSim(runtime, T_curr, f_avg)
-    # plot some of the trajectories of the stochastic strains
-    for i in range(10):
-        bact = sim.smallStrains[i]
-        t = bact.timepoints
-        pop = bact.poptrace
-        plt.plot(t, pop)
-    plt.show()
-    # # test analytic component
-    # taus = np.random.rand(1000)*0.01
-    # sim.analyticSim(T_curr=0, taus=taus, f_avg=f_avg)
