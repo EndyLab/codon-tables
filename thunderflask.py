@@ -1,4 +1,4 @@
-#mport dependencies
+#import dependencies
 import numpy as np
 from scipy.stats import halfgennorm
 import matplotlib.pyplot as plt
