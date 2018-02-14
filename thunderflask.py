@@ -1,6 +1,6 @@
 #import dependencies
 import numpy as np
-from scipy.stats import halfgennorm
+from scipy.stats import halfgennorm, binom
 import matplotlib.pyplot as plt
 import random
 from tqdm import tqdm
@@ -48,13 +48,14 @@ class thunderflask():
         }
         self.poptrace = {}
         # partition initial strain list appropriately
-        self.strainShuffle(T_curr=0, f_avg=0, save_established=True)
+        self.strainShuffle(T_curr=0, f_avg=0, save_dead=False, save_established=True, 
+                           prune_strains=False)
         # populate poptrace key/value pairs
         for bact in strains:
             self.poptrace[bact.ID] = ([], [])
 
     def simulate(self, T=500, dt=1, T_0=0, mut_param=[1,2], twiddle=3,
-            save_established=False, save_dead=False, save_all=False,
+            save_established=False, save_dead=False, save_all=False, 
             prune_strains=True):
         '''
         Main method of thunderflask class. Used to run genetic diversity
@@ -105,25 +106,26 @@ class thunderflask():
             # update average fitness
             f_avg, fs = self.updateF_avg()
             # run stochastic simulation
-            T_next, __ = self.stochSim(dt, T_curr, f_avg)
+            T_next, __ = self.stochSim(T_approx=dt, T_curr=T_curr, f_avg=f_avg,
+                                       prune_strains=prune_strains)
             # run numerical simulation
             res = 10
-            taus = np.ones(res)/res
+            taus = np.ones(res)*dt/res # generates res number of equally spaced timepoints
             self.analyticSim(T_curr=T_curr, dt=dt, taus=taus, f_avg=f_avg)
             # run mutation simulation
-            self.mutationSim(T_curr=T_next, dt=dt, mut_param=mut_param,
-                save_all=save_all)
+            self.mutationSim(T_curr=T_next, dt=dt, mut_param=mut_param, save_all=save_all)
             # shuffle strains
-            self.strainShuffle(T_curr=T_next, f_avg=f_avg, twiddle=twiddle,
-                save_established=save_established, save_dead=save_dead)
+            self.strainShuffle(T_curr=T_next, f_avg=f_avg, twiddle=twiddle, 
+                               save_established=save_established, save_dead=save_dead, 
+                               prune_strains=prune_strains)
             # update current time
             T_curr = T_next
             # update traces
-            self.tracer(T_curr, f_avg, fs)
+            self.tracer(T_curr=T_curr, f_avg=f_avg, fs=fs)
         # return when completed
         return
 
-    def stochSim(self, T_approx, T_curr, f_avg, prune_strains=True):
+    def stochSim(self, T_approx, T_curr, f_avg, prune_strains):
         '''
         Method used to perform stochastic simulation of bacterial growth
         dynamics. Used to handle strains whose total population size is less
@@ -203,7 +205,9 @@ class thunderflask():
         return T_curr, taus
 
     def analyticSim(self, T_curr, dt, taus, f_avg):
-        ''' Method used to simulate large population strains analytically. Loosely follows the design outlined in Desai and Fisher 2007.
+        ''' Method used to simulate large population strains analytically.
+        Loosely follows the design outlined in Desai and Fischer 2007.
+
         Parameters
         ----------
         - float T_curr: the current simulation time (in generations)
@@ -237,10 +241,8 @@ class thunderflask():
         # return from the method
         return
 
-    def strainShuffle(self, T_curr, f_avg, twiddle=3,
-            min_threshold=1e2, max_threshold=1e4,
-            save_established=False, save_dead=False,
-            prune_strains=True):
+    def strainShuffle(self, T_curr, f_avg, save_established, save_dead, prune_strains,
+                      twiddle=3,min_threshold=1e2, max_threshold=1e4): 
         ''' A method used to handle exchanging strains between small and large
         population groups. Has one 'magic number' parameter to allow the user
         to alter the establishment threshold. Enforces a minimum threshold for
@@ -337,7 +339,7 @@ class thunderflask():
         # return from method
         return
 
-    def mutationSim(self, T_curr, dt, mut_param, save_all=False):
+    def mutationSim(self, T_curr, dt, mut_param, save_all):
         '''
         Method used to determine the number of new strains to generate in a
         given period of time. Also handles generation and storage of these new
@@ -508,7 +510,7 @@ class thunderflask():
             / (1 + np.exp(km*(tm - t_array)))**(pm/km)) )
         return trace
 
-    def __mutNum(self, bacteria, dt):
+    def __mutNum(self, bacteria, dt, threshold=1):
         ''' A private method used to generate a number of mutations to
         introduce in this generation. Assumes the generation of novel mutations
         follows a Poisson Process whose expectation value is:
@@ -517,12 +519,17 @@ class thunderflask():
 
         Where N is the current strain population size, Ub is the per
         genome-generation beneficial mutation rate, and dt is the time period
-        over which to generate mutants (in generations).
+        over which to generate mutants (in generations). Automatically
+        determines when the Poisson assumptions break down and switches to N
+        independent draws from a binomial distribution in this case.
 
         Parameters
         ----------
         - bacteria.strain bacteria: bacterial strain to mutate
         - float dt: time period over which to mutate (in generations)
+        - float threshold: the cutoff expectation value after which the
+            simulation will switch to independent draws from binomial
+            distribution
 
         Returns
         -------
@@ -532,8 +539,13 @@ class thunderflask():
         N = bacteria.N_pop
         Ub = bacteria.mu
         l_mut = N*Ub*dt
-        # randomly draw the number of mutants from a Poisson distribution
-        n_mut = np.random.poisson(l_mut)
+        # determine whether or not to use binomial or Poisson distribution
+        if l_mut < threshold:
+            # randomly draw from binomial distribution
+            n_mut = np.random.binomial(N, Ub*dt)
+        else:
+            # randomly draw the number of mutants from a Poisson distribution
+            n_mut = np.random.poisson(l_mut)
         return n_mut
 
     def __mutStrength(self, n_mut, mut_param):
@@ -566,7 +578,7 @@ class thunderflask():
         dfs = halfgennorm.rvs(beta, scale=lam, size=n_mut)/100
         return dfs
 
-    def __mutate(self, bacteria, dfs, T_curr, save_all=False):
+    def __mutate(self, bacteria, dfs, T_curr, save_all):
         ''' A private method used to generate new strains and package them,
         given an ancestral strain and a vector of mutation effects. Also
         creates a key/value pair in self.poptrace dict. Optionally saves to all
