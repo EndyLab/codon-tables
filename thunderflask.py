@@ -101,8 +101,7 @@ class thunderflask():
         #initialize current time variable
         T_curr = T_0
         # loop until time is reached
-        # while T_curr < T:
-        for i in tqdm(range(int(T/dt))):
+        while T_curr < T:
             # update average fitness
             f_avg, fs = self.updateF_avg()
             # run stochastic simulation
@@ -124,6 +123,52 @@ class thunderflask():
             self.tracer(T_curr=T_curr, f_avg=f_avg, fs=fs)
         # return when completed
         return
+
+    def iterate(self, T=500, dt=1, T_0=0, mut_param=[1,2], twiddle=3,
+            save_established=False, save_dead=False, save_all=False, 
+            prune_strains=True):
+        '''
+        Method used to perform one iteration of the simulation. This allows
+        simulate() to optionally give tqdm progress bar. 
+
+        Parameters
+        ----------
+        - float T: the total time over which to simulate (in generations)
+        - float dt: the time epoch over which to run each epoch (in generations)
+        - float T_0: the initial time for the simulation (in generations)
+        - list<float> mut_param: a list of parameters to pass to mutation module
+        - float twiddle: a user defined number to adjust the thresholding
+        - bool save_established: tells the simulation whether or not to store
+            established species
+        - bool save_dead: tells the simulation whether or not to store dead
+            species
+        - bool save_all: tells simulation whether or not to to save all species
+        - bool prune_strains: tells the simulation whether or not to prune
+            small strains below mean fitness
+
+        Returns
+        -------
+        None
+        '''
+        # update average fitness
+        f_avg, fs = self.updateF_avg()
+        # run stochastic simulation
+        T_next, __ = self.stochSim(T_approx=dt, T_curr=T_curr, f_avg=f_avg,
+                                   prune_strains=prune_strains)
+        # run numerical simulation
+        res = 10
+        taus = np.ones(res)*dt/res # generates res number of equally spaced timepoints
+        self.analyticSim(T_curr=T_curr, dt=dt, taus=taus, f_avg=f_avg)
+        # run mutation simulation
+        self.mutationSim(T_curr=T_next, dt=dt, mut_param=mut_param, save_all=save_all)
+        # shuffle strains
+        self.strainShuffle(T_curr=T_next, f_avg=f_avg, twiddle=twiddle, 
+                           save_established=save_established, save_dead=save_dead, 
+                           prune_strains=prune_strains)
+        # update current time
+        T_curr = T_next
+        # update traces
+        self.tracer(T_curr=T_curr, f_avg=f_avg, fs=fs)
 
     def stochSim(self, T_approx, T_curr, f_avg, prune_strains):
         '''
