@@ -15,17 +15,20 @@ from bacteria import strain
 fftable = ffgen.triplet()
 # initialize some variables
 T_curr = 0
-mut_param = [1, 2]
+mut_param = [2, 3.5]
 dt = 0.1
 N_sims = 10
 T_sim = 1000
 t_extra = 5
-date = '2-14'
+date = '2-15'
 code = 'Fast Fail'
 filepath = 'res/2-14 Traces'
-filename = '{0}_{1}_favg_traces_T={2}_N={3}.pickle'.format(date, code, T_sim,
-                                                           N_sims)
-
+filename = '{0}_{1}_favg_traces_T={2}_N={3}_b={4}_l={5}.pickle'.format(date,
+                                                                       code,
+                                                                       T_sim,
+                                                                       N_sims,
+                                                                      mut_param[0],
+                                                                      mut_param[1]) 
 # initialize list of dictionaries of arrays (i know, it's too much) 
 dataframes = []
 newtimes = np.linspace(0, T_sim, int((T_sim)/dt))
