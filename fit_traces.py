@@ -1,31 +1,62 @@
 import numpy as np
+from scipy.interpolate import interp1d as interp
 import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
+import pickle
+from tqdm import tqdm
 from thunderflask import thunderflask
 from bacteria import strain
-from tqdm import tqdm
 from ffgen import ffgen
 from codonTable import codonTable
 from bacteria import strain
 
 # populate sim with standard code organism
-LUCA = strain(N_pop=1e6, fitness=0, mu=2e-5)
+fftable = ffgen.triplet()
 # initialize some variables
 T_curr = 0
 mut_param = [1, 2]
 dt = 0.1
 N_sims = 10
-T_sim = 5
+T_sim = 1000
+t_extra = 5
+date = '2-14'
+code = 'Fast Fail'
+filepath = 'res/2-14 Traces'
+filename = '{0}_{1}_favg_traces_T={2}_N={3}.pickle'.format(date, code, T_sim,
+                                                           N_sims)
 
 # initialize list of dictionaries of arrays (i know, it's too much) 
-data = []
+dataframes = []
+newtimes = np.linspace(0, T_sim, int((T_sim)/dt))
 # run N simulations
-for i in tqdm(range(N_sims)):
+for i in tqdm(range(N_sims), desc='Simulation Number: '):
+    LUCA = strain(N_pop=1e6, table=fftable, fitness=0, mu=2e-5)
     sim = thunderflask(LUCA)
-    sim.simulate(T_sim, dt, T_curr, mut_param)
-    data.append(sim.f_avgtrace)
+    sim.simulate(T_sim+t_extra, dt, T_curr, mut_param)
+    t = sim.f_avgtrace['timepoints']
+    f_avg = sim.f_avgtrace['f_avg']
+    interp_fxn = interp(t, f_avg)
+    newf = interp_fxn(newtimes)
+    df = pd.DataFrame({
+        'time' : newtimes, 
+        'value' : newf, 
+        'sim' : [i for j in range(len(newf))],
+        'code' : [code for j in range(len(newf))]
+    })
+    dataframes.append(df)
 # package data into pandas dataframe
-
+df_sc = pd.concat(dataframes)
+# pickle results
+with open('{0}/{1}'.format(filepath, filename), 'wb') as handle:
+    pickle.dump(df_sc, handle)
+# plot results
+ax = sns.tsplot(data=df_sc, time='time', value='value', unit='sim')
+plt.title('{0}: <F> vs time ({1} Replicates)'.format(code, N_sims))
+plt.xlabel('Time (in generations)')
+plt.ylabel('Mean Fitness')
+plt.show()
+print('done')
 # fig, axarr = plt.subplots(2, sharex=True)
 # axarr[0].plot(t, f)
 # axarr[0].set_title('Fast Fail Code: Mean Fitness vs Time')
@@ -38,16 +69,3 @@ for i in tqdm(range(N_sims)):
 # plt.ylabel('Fitness (%)')
 # plt.show()
 
-# populate sim with a fast fail organism
-table = ffgen.triplet()
-LUCA = strain(N_pop=1e6, table=table, fitness=0, mu=2e-5)
-sim = thunderflask(LUCA)
-
-
-for i, bact in enumerate(sim.estStrains):
-    # if i % 10 == 0:
-    t = bact.timepoints
-    pop = bact.poptrace
-    plt.semilogy(t, pop)
-plt.title('Fast Fail Code: Population Traces for Established Strains')
-plt.show()

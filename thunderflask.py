@@ -56,7 +56,7 @@ class thunderflask():
 
     def simulate(self, T=500, dt=1, T_0=0, mut_param=[1,2], twiddle=3,
             save_established=False, save_dead=False, save_all=False, 
-            prune_strains=True):
+            prune_strains=True, show_progress=True):
         '''
         Main method of thunderflask class. Used to run genetic diversity
         simulation. There are four main modules in this simulation:
@@ -100,42 +100,33 @@ class thunderflask():
         '''
         #initialize current time variable
         T_curr = T_0
-        # loop until time is reached
-        while T_curr < T:
-            # update average fitness
-            f_avg, fs = self.updateF_avg()
-            # run stochastic simulation
-            T_next, __ = self.stochSim(T_approx=dt, T_curr=T_curr, f_avg=f_avg,
-                                       prune_strains=prune_strains)
-            # run numerical simulation
-            res = 10
-            taus = np.ones(res)*dt/res # generates res number of equally spaced timepoints
-            self.analyticSim(T_curr=T_curr, dt=dt, taus=taus, f_avg=f_avg)
-            # run mutation simulation
-            self.mutationSim(T_curr=T_next, dt=dt, mut_param=mut_param, save_all=save_all)
-            # shuffle strains
-            self.strainShuffle(T_curr=T_next, f_avg=f_avg, twiddle=twiddle, 
-                               save_established=save_established, save_dead=save_dead, 
-                               prune_strains=prune_strains)
-            # update current time
-            T_curr = T_next
-            # update traces
-            self.tracer(T_curr=T_curr, f_avg=f_avg, fs=fs)
-        # return when completed
+        # loop until time is reached, either with or without tqdm
+        if show_progress:
+            for i in tqdm(range(int(T/dt)), desc='Iteration Number: '):
+                T_curr = self.iterate(T_curr=T_curr, dt=dt,
+                                      mut_param=mut_param, twiddle=twiddle,
+                                      save_established=save_established,
+                                      save_dead=save_dead, save_all=save_all,
+                                      prune_strains=prune_strains)
+        else:
+            while T_curr < T:
+                T_curr = self.iterate(T_curr=T_curr, dt=dt,
+                                      mut_param=mut_param, twiddle=twiddle,
+                                      save_established=save_established,
+                                      save_dead=save_dead, save_all=save_all,
+                                      prune_strains=prune_strains)
         return
 
-    def iterate(self, T=500, dt=1, T_0=0, mut_param=[1,2], twiddle=3,
-            save_established=False, save_dead=False, save_all=False, 
-            prune_strains=True):
+    def iterate(self, T_curr, dt, mut_param, twiddle, 
+                save_established, save_dead, save_all, prune_strains):
         '''
         Method used to perform one iteration of the simulation. This allows
         simulate() to optionally give tqdm progress bar. 
 
         Parameters
         ----------
-        - float T: the total time over which to simulate (in generations)
+        - float T_curr: the current simulation time (in generations)
         - float dt: the time epoch over which to run each epoch (in generations)
-        - float T_0: the initial time for the simulation (in generations)
         - list<float> mut_param: a list of parameters to pass to mutation module
         - float twiddle: a user defined number to adjust the thresholding
         - bool save_established: tells the simulation whether or not to store
@@ -148,7 +139,8 @@ class thunderflask():
 
         Returns
         -------
-        None
+        float T_curr: the current simulation time (in generations) after one
+            iteration
         '''
         # update average fitness
         f_avg, fs = self.updateF_avg()
@@ -169,6 +161,8 @@ class thunderflask():
         T_curr = T_next
         # update traces
         self.tracer(T_curr=T_curr, f_avg=f_avg, fs=fs)
+        # return current time
+        return T_curr
 
     def stochSim(self, T_approx, T_curr, f_avg, prune_strains):
         '''
@@ -226,7 +220,6 @@ class thunderflask():
             a_cumsum = np.cumsum(a_i)
             a_tot = a_cumsum[-1]
             if a_tot <= 0:
-                timeind -= 1
                 break
             tau = np.log(1/np.random.rand())/a_tot
             # update T_curr

@@ -16,7 +16,8 @@ mut_param = [1, 2]
 dt = 0.3
 
 # run simulation
-sim.simulate(300, dt, T_curr, mut_param, save_all=True, prune_strains=False)
+sim.simulate(100, dt, T_curr, mut_param, save_all=True, prune_strains=True,
+             show_progress=False)
 t = np.array(sim.f_avgtrace['timepoints'])
 f = np.array(sim.f_avgtrace['f_avg'])
 fig, axarr = plt.subplots(2, sharex=True)
