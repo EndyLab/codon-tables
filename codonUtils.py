@@ -20,6 +20,8 @@ class utils:
     Class Attributes
     ----------------
     - dict standardTable: a dict representing the Standard Table
+    - dict coloradoTable: a dict representing the evolved code for Pines. et
+        al. 2017
     - list(str) dNTPs: a list of strings representing the DNA NTPs
     - list(str) rNTPs: a list of strings representing the RNA NTPs
     - list(str) tripletCodons: a list of string representing the set of rNTP
@@ -49,7 +51,8 @@ class utils:
         unPickled = pickle.load(handle)
     [dNTPs, rNTPs, residues, tripletCodons, tripletMutPairs,
      PRS, kdHydrophobicity, Gilis, SCV,
-     unrestrictedBlock, standardBlock, naturalBlock] = unPickled
+     unrestrictedBlock, standardBlock, naturalBlock, 
+    coloradoTable] = unPickled
 
     @staticmethod
     def getAAcounts(table):
