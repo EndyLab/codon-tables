@@ -17,11 +17,11 @@ fftable = ffgen.triplet()
 T_curr = 0
 mut_param = [2, 3.5]
 dt = 0.1
-N_sims = 10
-T_sim = 1000
+N_sims = 50
+T_sim = 300
 t_extra = 5
-date = '2-15'
-code = 'Fast Fail'
+date = '2-20'
+code = 'Colorado'
 filepath = 'res/2-14 Traces'
 filename = '{0}_{1}_favg_traces_T={2}_N={3}_b={4}_l={5}.pickle'.format(date,
                                                                        code,
