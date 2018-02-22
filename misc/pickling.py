@@ -119,6 +119,73 @@ if __name__ == '__main__':
                 # add to set
                 tripletMutPairs.add((codon, c_new))
 
+    # define refactored [sic] code from Pines et al 2017 (aka Colorado code)
+    coloradoTable = {
+        'GAA' : 'V',
+        'UCG' : 'V',
+        'CGU' : 'V',
+        'UGA' : 'L',
+        'AAU' : 'L',
+        'CUC' : 'L',
+        'CCA' : 'I',
+        'GGG' : 'I',
+        'UUU' : 'I',
+        'UAC' : 'I',
+        'CAG' : 'A',
+        'AUA' : 'A',
+        'GCU' : 'A',
+        'AGC' : 'A',
+        'GAU' : 'E',
+        'ACA' : 'E',
+        'UUC' : 'E',
+        'CGG' : 'E',
+        'UGU' : 'D',
+        'AAC' : 'D',
+        'GUG' : 'D',
+        'UAA' : '*',
+        'UCU' : 'P',
+        'AUG' : 'P',
+        'GUC' : 'P',
+        'CAA' : 'P',
+        'GAC' : 'T',
+        'UCA' : 'T',
+        'CCC' : 'S',
+        'AGG' : 'S',
+        'AUU' : 'Q',
+        'GGA' : 'Q',
+        'UGC' : 'N',
+        'CAU' : 'N',
+        'GCG' : 'M',
+        'CUA' : 'M',
+        'AAA' : 'C',
+        'UUG' : 'C',
+        'GGU' : 'C',
+        'CUU' : 'G',
+        'AGU' : 'G',
+        'ACC' : 'G',
+        'UAG' : 'G',
+        'UGG' : 'R',
+        'GCA' : 'R',
+        'CAC' : 'R',
+        'GGC' : 'H',
+        'CCG' : 'H',
+        'UUA' : 'H',
+        'ACU' : 'H',
+        'CGA' : 'K',
+        'UCC' : 'K',
+        'GUU' : 'K',
+        'AAG' : 'K',
+        'CCU' : 'Y',
+        'GAG' : 'Y',
+        'AUC' : 'Y',
+        'CGC' : 'W',
+        'ACG' : 'W',
+        'GUA' : 'W',
+        'UAU' : 'W',
+        'GCC' : 'F',
+        'CUG' : 'F',
+        'AGA' : 'F',
+    }
     # massage Gilis.csv files into the proper format
     df = pd.read_csv('../res/Gilis.csv')
     indices = df['Unnamed: 0'].tolist()
@@ -146,7 +213,8 @@ if __name__ == '__main__':
     # time to pickle!
     toDump = [dNTPs, rNTPs, residues, tripletCodons, tripletMutPairs,
                 PRS, kdHydrophobicity, Gilis, SCV,
-                unrestrictedBlock, standardBlock, naturalBlock]
+                unrestrictedBlock, standardBlock, naturalBlock,
+                coloradoTable]
     with open('../res/utilsDefinitions.pickle', 'wb') as handle:
         pickle.dump(toDump, handle)
 
