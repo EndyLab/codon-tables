@@ -9,19 +9,24 @@ from thunderflask import thunderflask
 from bacteria import strain
 from ffgen import ffgen
 from codonTable import codonTable
+from codonUtils import utils
 from bacteria import strain
 
-# populate sim with standard code organism
-fftable = ffgen.triplet()
+# get appropriate table
+table = {
+    'Standard Code' : utils.standardTable,
+    'Fast Fail' : ffgen.triplet(),
+    'Colorado' : utils.coloradoTable
+}
 # initialize some variables
 T_curr = 0
-mut_param = [2, 3.5]
+mut_param = [0.5, 0.33]
 dt = 0.1
-N_sims = 50
-T_sim = 300
+N_sims = 10
+T_sim = 1000
 t_extra = 5
-date = '2-20'
-code = 'Colorado'
+date = '2-21'
+code = 'Standard Code'
 filepath = 'res/2-14 Traces'
 filename = '{0}_{1}_favg_traces_T={2}_N={3}_b={4}_l={5}.pickle'.format(date,
                                                                        code,
@@ -34,7 +39,7 @@ dataframes = []
 newtimes = np.linspace(0, T_sim, int((T_sim)/dt))
 # run N simulations
 for i in tqdm(range(N_sims), desc='Simulation Number: '):
-    LUCA = strain(N_pop=1e6, table=fftable, fitness=0, mu=2e-5)
+    LUCA = strain(N_pop=1e6, table=table[code], fitness=0, mu=2e-5)
     sim = thunderflask(LUCA)
     sim.simulate(T_sim+t_extra, dt, T_curr, mut_param)
     t = sim.f_avgtrace['timepoints']
