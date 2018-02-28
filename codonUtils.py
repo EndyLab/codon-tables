@@ -432,6 +432,47 @@ class utils:
         # return fraction of synonymous mutations
         return synMut/totalMut
 
+    @staticmethod
+    def mutability(table):
+        '''A static method used to calculate the average chemical variability
+        of single point mutations in a given genetic code. For each
+        nonsynonymous single point mutation, it calculates the chemical
+        distance between the previously encoded amino acid and its replacement
+        after mutation. The mean of these values is then returned.
+
+        Parameters
+        ----------
+        dict table: a python dict representing the codon table to analyze
+
+        Returns
+        -------
+        float mutability: a float representing the silencicity metric
+        '''
+        # initialize counter and running metric, and get number of possible
+        # mutation pairs
+        nonsynMut = 0
+        metric = 0
+        totalMut = len(utils.tripletMutPairs)
+        # get Kyte-Doolittle hydropathy metric
+        kd = utils.kdHydrophobicity
+        # loop over mutation pairs 
+        for (c1, c2) in utils.tripletMutPairs:
+            # increment counter and metric if nonsynonymous
+            if not (table[c1] == table[c2]):
+                # increment counter
+                nonsynMut += 1
+                # increment metric
+                aa1 = table[c1]
+                aa2 = table[c2]
+                metric += np.abs(kd[aa1] - kd[aa2])
+        # if there are no nonsynonymous mutations, return 0
+        if nonsynMut == 0:
+            mutability = 0
+        # else, return the average dKD per mutation
+        else:
+            mutability = metric / nonsynMut
+        return mutability
+
 if __name__ == '__main__':
     table = utils.randomTable()
     from codonTable import codonTable
