@@ -44,13 +44,13 @@ class strain():
         self.t_0 = t_0
         self.t_est = t_est
         self.table = table
-        self.mu = self.__getMutRate(mu)
+        self.mu = self.getMutRate(mu)
         self.ID = str(ID)
         self.lineage = lineage
         self.timepoints = []
         self.poptrace = []
 
-    def __getMutRate(self, mu):
+    def getMutRate(self, mu):
         '''A private method used to calculate what the mutation rate should be for a particular strain given the rate for cells with the Standard Code.
 
         Parameters
