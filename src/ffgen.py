@@ -16,11 +16,43 @@ class ffgen():
     @staticmethod
     def triplet():
         '''
-        A function used to generate triplet decoding, fast fail genetic codes
+        A static method used to generate triplet decoding, fast fail genetic codes
         using a rational, 'top down' approach. Snakes along codon table to fill
         16 maximally distant codons first (all greater than one mutation from
         each other), then randomly chooses 4 codons to place the remaining
-        amino acids'''
+        amino acids.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        ----------
+        dict table: a triplet fast fail table
+        '''
+        # return table built by reducedTriplet, with no knockouts
+        return ffgen.reducedTriplet(knockout=0)
+
+    @staticmethod
+    def reducedTriplet(knockout=0):
+        '''
+        A static method used to generate triplet decoding, fast fail genetic
+        codes with an arbitrary number of amino acids randomly removed from the
+        set of encoded amino acids. Uses a rational, 'top down' approach.
+        Snakes along codon table to fill 16 maximally distant codons first (all
+        greater than one mutation from each other), then randomly chooses 4 - n
+        codons to place the remaining amino acids. If the number of knockouts
+        is greater than 4, it skips the second step and only includes 16 - n in
+        the first step.
+
+        Parameters
+        ----------
+        int knockout: number of amino acids to omit
+
+        Returns
+        ----------
+        dict table: a triplet fast fail table
+        '''
 
         ############################
         # fill out first 16 codons #
@@ -42,43 +74,61 @@ class ffgen():
             queue1.put(nt1)
             queue2.put(nt2)
 
-        # place the first 16 elements
-        for i in range(queue1.qsize()):
-            # get first nucleotide of next codon
-            nt1 = queue1.get()
-            for j in range(queue2.qsize()):
-                # get second nucleotide of next codon
+        # handle knockout cases
+        if knockout >= 20: 
+            # if all amino acids are to be knocked out, return a table of all
+            # stops
+            for codon in utils.tripletCodons:
+                table[codon] = '*'
+        else:
+            # otherwise, populate first 16 elements of table (unless knockout
+            # is reached)
+            count = 0
+            for i in range(queue1.qsize()):
+                # get first nucleotide of next codon
+                nt1 = queue1.get()
+                for j in range(queue2.qsize()):
+                    # break if knockout is reached
+                    if count > (20 - knockout): break
+                    # get second nucleotide of next codon
+                    nt2 = queue2.get()
+                    # get third nucleotide
+                    nt3 = pos3[j]
+                    # build codon, assign it a residue
+                    codon = nt1 + nt2 + nt3
+                    AA = choice(tuple(unusedAA))
+                    table[codon] = AA
+                    # update caching variables
+                    usedCodons.add(codon)
+                    unusedAA.remove(AA)
+                    # re-enqueue second nucleotide
+                    queue2.put(nt2)
+                    # increment counter
+                    count += 1
+                # re-enqueue first nucleotide
+                queue1.put(nt1)
+                # dequeue and re-enqueue second position to shift array
                 nt2 = queue2.get()
-                # get third nucleotide
-                nt3 = pos3[j]
-                # build codon, assign it a residue
-                codon = nt1 + nt2 + nt3
-                AA = choice(tuple(unusedAA))
-                table[codon] = AA
-                # update caching variables
-                usedCodons.add(codon)
-                unusedAA.remove(AA)
-                # re-enqueue second nucleotide
                 queue2.put(nt2)
-            # re-enqueue first nucleotide
-            queue1.put(nt1)
 
-        # place the last 4 elements at least 2 substitutions away
-        availableCodons = set(utils.tripletCodons) - usedCodons
-        for i in range(len(unusedAA)):
-            # pick a codon from the available set and assign it an amino acid
-            codon = choice(tuple(availableCodons))
-            AA = choice(tuple(unusedAA))
-            table[codon] = AA
-            # update cache variables
-            availableCodons = ffgen.updateAvailable3(codon, availableCodons)
-            usedCodons.add(codon)
-            unusedAA.remove(AA)
+            # place the last 4 elements, if necessary 
+            numLeft = 4 - knockout
+            if numLeft > 0:
+                availableCodons = set(utils.tripletCodons) - usedCodons
+                for i in range(numLeft):
+                    # pick a codon from the available set and assign it an amino acid
+                    codon = choice(tuple(availableCodons))
+                    AA = choice(tuple(unusedAA))
+                    table[codon] = AA
+                    # update cache variables
+                    availableCodons = ffgen.updateAvailable3(codon, availableCodons)
+                    usedCodons.add(codon)
+                    unusedAA.remove(AA)
 
-        # assign unused codons to STOP
-        remainingCodons = set(utils.tripletCodons) - usedCodons
-        for codon in remainingCodons:
-            table[codon] = '*'
+            # assign unused codons to STOP
+            remainingCodons = set(utils.tripletCodons) - usedCodons
+            for codon in remainingCodons:
+                table[codon] = '*'
 
         # return built table
         return table

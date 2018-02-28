@@ -1,11 +1,11 @@
 # import necessary modules
 import numpy as np
 import pandas as pd
-from codonUtils import utils
-from codonTable import codonTable
+from src.codonUtils import utils
+from src.codonTable import codonTable
 from queue import Queue as queue
 from random import choice
-class ffBC():
+class ffgenBC():
     ''' A class used to generate fast fail codon tables with less than 20 Amino Acids
     '''
 
@@ -13,7 +13,7 @@ class ffBC():
         return
 
     @staticmethod
-    def BCtriplet(knockouts = 0):
+    def triplet():
         '''
         A function used to generate triplet decoding, fast fail genetic codes
         using a rational, 'top down' approach. Snakes along codon table to fill
@@ -70,7 +70,7 @@ class ffBC():
             AA = choice(tuple(unusedAA))
             table[codon] = AA
             # update cache variables
-            availableCodons = ffBC.updateAvailable3(codon, availableCodons)
+            availableCodons = ffgenBC.updateAvailable3(codon, availableCodons)
             usedCodons.add(codon)
             unusedAA.remove(AA)
 
@@ -105,6 +105,7 @@ if __name__ == '__main__':
     # count = 0
     # while len(availableCodons) > 0:
     #     codon = random.choice(tuple(availableCodons))
-    #     availableCodons = ffBC.updateAvailable3(codon, availableCodons)
+    #     availableCodons = ffgenBC.updateAvailable3(codon, availableCodons)
     #     count += 1
-    print(ffBC.BCtriplet())
+    print(ffgenBC.triplet())
+
