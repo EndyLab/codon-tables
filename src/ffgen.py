@@ -1,8 +1,8 @@
 # import necessary modules
 import numpy as np
 import pandas as pd
-from codonUtils import utils
-from codonTable import codonTable
+from src.codonUtils import utils
+from src.codonTable import codonTable
 from queue import Queue as queue
 from random import choice
 

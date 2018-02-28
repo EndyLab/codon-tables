@@ -4,9 +4,9 @@ from scipy.stats import halfgennorm, binom
 import matplotlib.pyplot as plt
 import random
 from tqdm import tqdm
-from codonTable import codonTable
-from codonUtils import utils
-from bacteria import strain
+from src.codonTable import codonTable
+from src.codonUtils import utils
+from src.bacteria import strain
 
 # define simulator class
 class thunderflask():

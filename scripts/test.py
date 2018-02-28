@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
 # import seaborn as sns
-from thunderflask import thunderflask
-from bacteria import strain
+from src.thunderflask import thunderflask
+from src.bacteria import strain
 from tqdm import tqdm
 
 # run several iterations
@@ -16,8 +16,8 @@ mut_param = [1, 2]
 dt = 0.3
 
 # run simulation
-sim.simulate(100, dt, T_curr, mut_param, save_all=True, prune_strains=True,
-             show_progress=False)
+sim.simulate(1000, dt, T_curr, mut_param, save_all=True, prune_strains=True,
+             show_progress=True)
 t = np.array(sim.f_avgtrace['timepoints'])
 f = np.array(sim.f_avgtrace['f_avg'])
 fig, axarr = plt.subplots(2, sharex=True)
