@@ -2,8 +2,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from uuid import uuid4 as uuid
-from codonUtils import utils
-from codonTable import codonTable
+from src.codonUtils import utils
+from src.codonTable import codonTable
 
 class strain():
     '''A class used to represent a bacterial strain in culture'''

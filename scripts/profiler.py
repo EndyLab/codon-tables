@@ -2,8 +2,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
-from thunderflask import thunderflask
-from bacteria import strain
+from src.thunderflask import thunderflask
+from src.bacteria import strain
 from tqdm import tqdm
 import cProfile
 

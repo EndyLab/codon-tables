@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from thunderflask import thunderflask
-from bacteria import strain
+from src.thunderflask import thunderflask
+from src.bacteria import strain
 from tqdm import tqdm
-from ffgen import ffgen
-from codonTable import codonTable
-from bacteria import strain
+from src.ffgen import ffgen
+from src.codonTable import codonTable
+from src.bacteria import strain
 
 # populate sim with a fast fail organism
 table = ffgen.triplet()
