@@ -147,9 +147,12 @@ class thunderflask():
         # run stochastic simulation
         T_next, __ = self.stochSim(T_approx=dt, T_curr=T_curr, f_avg=f_avg,
                                    prune_strains=prune_strains)
+        # handle when no stoch sim occured for numerical simulation (set to dt)
+        if T_curr == T_next:
+            T_next += dt
         # run numerical simulation
         res = 10
-        taus = np.ones(res)*dt/res # generates res number of equally spaced timepoints
+        taus = np.ones(res)*(T_next - T_curr)/res # generates res timepoints
         self.analyticSim(T_curr=T_curr, dt=dt, taus=taus, f_avg=f_avg)
         # run mutation simulation
         self.mutationSim(T_curr=T_next, dt=dt, mut_param=mut_param, save_all=save_all)
