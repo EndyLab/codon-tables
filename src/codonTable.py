@@ -1,4 +1,4 @@
-# import necessary modules
+#, import necessary modules
 import numpy as np
 import pandas as pd
 from matplotlib import cm
@@ -345,7 +345,8 @@ class codonTable:
 
     def plotGraph(self, title="", ctitle="",
                     color='viridis', norm=True,
-                    nodeSize='count', nodeColor='kd'):
+                    nodeSize='count', nodeColor='kd',
+                    filename=None):
         ''' Represents self.codonDict as a network capturing the adjacency of
         the amino acids. Two amino acids are defined as adjacent if a codon
         representing AA_1 can be mutated to represent AA_2 without representing
@@ -377,6 +378,7 @@ class codonTable:
             node size based on a metric. Defaults to degeneracy
         - str nodeColor='kd': an optional input to specify the
             node size based on a metric. Defaults to degeneracy
+        - str filename: optionally save figure to file with filename
 
         Returns
         -------
@@ -399,12 +401,10 @@ class codonTable:
             [edge['weight'] for (a1, a2, edge) in G.edges(data=True)]
         )
         weights /= np.mean(weights)
-        node_size = np.array(
-            [data[nodeSize]*200 for (node, data) in G.nodes(data=True)]
-        )
+        node_size = [data[nodeSize]*200 for (node, data) in G.nodes(data=True)]
         node_color = np.array(
             [data[nodeColor] for (node, data) in G.nodes(data=True)]
-        )
+        ).ravel()
         # set up layout
         positions = nx.spring_layout(G, iterations=100)
         # draw graph
@@ -429,8 +429,9 @@ class codonTable:
             nodelist=['*'], node_size=node_size[stops]+30,
             node_color='grey')
         #format graph
-        if title != "":
-            plt.title(title)
+        if title != "": plt.title(title)
+        # optionally save figure
+        if type(filename) == str: plt.savefig(filename)
         plt.show()
         return fig
 
