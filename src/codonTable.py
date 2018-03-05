@@ -423,10 +423,10 @@ class codonTable:
         stops = []
         for i, AA in enumerate(G.nodes()):
             if AA == '*':
-                stops.append(i)
-        stops = np.array(stops)
+                stops.append(int(i))
+        stops = np.array(stops, dtype=int)
         nx.draw_networkx_nodes(G, positions,
-            nodelist=['*'], node_size=node_size[stops]+30,
+            nodelist=['*'], node_size=node_size[stops[0]],
             node_color='grey')
         #format graph
         if title != "": plt.title(title)

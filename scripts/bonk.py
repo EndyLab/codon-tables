@@ -5,12 +5,11 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pickle
 from tqdm import tqdm
-from thunderflask import thunderflask
-from bacteria import strain
-from ffgen import ffgen
-from codonTable import codonTable
-from codonUtils import utils
-from bacteria import strain
+from src.thunderflask import thunderflask
+from src.bacteria import strain
+from src.ffgen import ffgen
+from src.codonTable import codonTable
+from src.codonUtils import utils
 
 # get appropriate table
 table = {
@@ -22,8 +21,8 @@ table = {
 T_curr = 0
 mut_param = [0.5, 0.33]
 dt = 0.1
-N_sims = 1
-T_sim = 1000
+N_sims = 3
+T_sim = 100
 t_extra = 5
 date = '2-21'
 code = 'Fast Fail'
