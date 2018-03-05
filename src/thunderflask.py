@@ -100,6 +100,9 @@ class thunderflask():
         '''
         #initialize current time variable
         T_curr = T_0
+        # update average fitness and store initial conditions
+        f_avg, fs = self.updateF_avg()
+        self.tracer(T_curr=T_curr, f_avg=f_avg, fs=fs)
         # loop until time is reached, either with or without tqdm
         if show_progress:
             for i in tqdm(range(int(T/dt)), desc='Iteration Number: '):
