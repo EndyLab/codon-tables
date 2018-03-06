@@ -3,7 +3,6 @@ import numpy as np
 from scipy.stats import halfgennorm, binom
 import matplotlib.pyplot as plt
 import random
-from tqdm import tqdm
 from src.codonTable import codonTable
 from src.codonUtils import utils
 from src.bacteria import strain
@@ -104,7 +103,13 @@ class thunderflask():
         f_avg, fs = self.updateF_avg()
         self.tracer(T_curr=T_curr, f_avg=f_avg, fs=fs)
         # loop until time is reached, either with or without tqdm
-        if show_progress:
+        if show_progress == True or type(show_progress) == str:
+            # import either tqdm or tqdm_notebook depending on input
+            if show_progress == 'notebook':
+                from tqdm import tqdm_notebook as tqdm
+            else:
+                from tqdm import tqdm
+            # run simulation
             for i in tqdm(range(int(T/dt)), desc='Iteration Number: '):
                 T_curr = self.iterate(T_curr=T_curr, dt=dt,
                                       mut_param=mut_param, twiddle=twiddle,
