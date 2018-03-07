@@ -346,6 +346,7 @@ class codonTable:
     def plotGraph(self, title="", ctitle="",
                     color='viridis', norm=True,
                     nodeSize='count', nodeColor='kd',
+                    weightingFxn=None,
                     filename=None):
         ''' Represents self.codonDict as a network capturing the adjacency of
         the amino acids. Two amino acids are defined as adjacent if a codon
@@ -378,6 +379,8 @@ class codonTable:
             node size based on a metric. Defaults to degeneracy
         - str nodeColor='kd': an optional input to specify the
             node size based on a metric. Defaults to degeneracy
+        - fxn(array<floats>) weightingFxn: a function used to remap edge
+            weights. Optional
         - str filename: optionally save figure to file with filename
 
         Returns
@@ -400,6 +403,9 @@ class codonTable:
         weights = np.array(
             [edge['weight'] for (a1, a2, edge) in G.edges(data=True)]
         )
+        # Optionally weigh edges nonlinearly for easier visualization
+        if weightingFxn != None:
+            weights = weightingFxn(weights)
         weights /= np.mean(weights)
         node_size = [data[nodeSize]*200 for (node, data) in G.nodes(data=True)]
         node_color = np.array(
