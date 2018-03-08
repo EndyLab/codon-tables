@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import Bio.Data.CodonTable
 import networkx as nx
+from collections import deque
 import random
 from copy import copy
 import pickle
@@ -132,18 +133,19 @@ class utils:
         # loop through all possible codons
         for codon in table.keys():
             # declare temporary cache to hold discovered codons; store first codon in there
-            cache = set()
-            cache.add(codon)
+            cache = set(codon)
+            # declare queue of codons to check
+            codonDeque = deque()
             # declare neighbors list
             neighbors = []
             # use connectRecurse to map connectivity
             distDict[codon] = utils.__connectRecurse(codon, 1, table,
-                neighbors, cache);
+                neighbors, codonDeque, cache);
         # return codonDist
         return distDict
 
     @staticmethod
-    def __connectRecurse(codon, level, table, neighbors, cache):
+    def __connectRecurse(codon, level, table, neighbors, codonDeque, cache):
         ''' A recursive helper function that finds all of a codon's nearest
         neighbors and how far away they are. Returns a list of tuples
         representing the codons and their distances away.
@@ -157,41 +159,41 @@ class utils:
         - int level: the current number of mutations away from the start codon
         - dict table: a python dict representing the codon table
         - list neighbors: the current list of the base codon's nearest neighbors
+        - deque codonDeque: the queue of codons to search recursively
         - set cache: memoization set to store previously visited codons
         Returns
         -------
         list neighbors: returns updated neighbors list
         '''
-        # define list of codons to recursively look through after searching this level
-        recurse_list = []
+        # import ipdb; ipdb.set_trace()
         # loop through every codon one mutation away
         for i, base in enumerate(codon):
             for nt in utils.rNTPs:
                 # handle if nt is the same as base
-                if nt == base:
-                    continue
+                if nt == base: continue
                 # if not, generate new codon
                 c_new = codon[:i] + nt + codon[i+1:]
                 # Base case: c_new already found
-                if c_new in cache:
-                    continue
+                if c_new in cache: continue
                 # Base case: found terminus
                 elif table[c_new] != table[codon]:
                     # add distance to neighbors list
                     neighbors.append((c_new, level))
                     # add c_new to cache of found codons
-                    cache.add(c_new)
+                    cache.add(str(c_new))
                 # Recursive case
                 else:
                     # add c_new to cache of found codons
                     cache.add(c_new)
-                    # append c_new to list of codons to recurse through
-                    recurse_list.append(c_new)
+                    # append c_new to queue of codons to recurse through
+                    codonDeque.appendleft((c_new, level))
         # iterate over codons to recursively search for connectivity
-        for c in recurse_list:
+        while not len(codonDeque) == 0:
+            # get next codon to search
+            c, newlevel = codonDeque.pop()
             # append results to neighbors list
-            neighbors = utils.__connectRecurse(c, level + 1,
-                                            table, neighbors, cache)
+            neighbors = utils.__connectRecurse(c, newlevel + 1, table, 
+                                               neighbors, codonDeque, cache)
         # return resulting list
         return neighbors
 
@@ -216,7 +218,10 @@ class utils:
                 A2 = table[c2]
                 aaNeighbors.append((A2, level))
             # store resulting list in resiDistDict
-            resiDistDict[A1] = aaNeighbors
+            if A1 not in resiDistDict:
+                resiDistDict[A1] = aaNeighbors
+            else:
+                resiDistDict[A1] += aaNeighbors
         # return dictionary
         return resiDistDict
 
