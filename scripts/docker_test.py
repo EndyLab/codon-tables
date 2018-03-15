@@ -11,6 +11,7 @@ from src.ffgen import ffgen
 from src.codonTable import codonTable
 from src.codonUtils import utils
 from src.bacteria import strain
+from sys import argv
 
 # get appropriate table
 table = {
@@ -18,22 +19,30 @@ table = {
     'Fast Fail' : ffgen.triplet(),
     'Colorado' : utils.coloradoTable
 }
-# initialize some variables
-T_curr = 0
-mut_param = [1, 2]
-dt = 0.1
-N_sims = 3
-T_sim = 400
-t_extra = 5
-date = '3-14'
-code = 'Standard Code'
-filepath = ''
-filename = '{0}_{1}_favg_traces_T={2}_N={3}_b={4}_l={5}.pickle'.format(date,
-                                                                       code,
-                                                                       T_sim,
-                                                                      N_sims,
-                                                                      mut_param[0],
-                                                                      mut_param[1]) 
+# get dictionary of parameters from passed pickle file
+filename = argv[1]
+with open(filename, 'rb') as handle:
+    param = pickle.load(handle)
+# initialize variables
+sim_num = param['sim_num']
+batch_num = param['batch_num']
+T_curr = param['T_curr']
+mut_param = param['mut_param']
+dt = param['dt']
+N_sims = param['N_sims']
+T_sim = param['T_sim']
+t_extra = param['t_extra']
+date = param['date']
+code = param['code']
+filepath = param['filepath']
+filename = '{0}_{1}_sim={2}_batch={3}_favg_traces_T={2}_N={3}_b={4}_l={5}.pickle'.format(date,
+                                                                              code,
+                                                                              sim_num,
+                                                                              batch_num,
+                                                                              T_sim,
+                                                                              N_sims,
+                                                                              mut_param[0], 
+                                                                              mut_param[1]) 
 # initialize list of dictionaries of arrays (i know, it's too much) 
 dataframes = []
 newtimes = np.linspace(0, T_sim, int((T_sim)/dt))
