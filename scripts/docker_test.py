@@ -27,6 +27,7 @@ with open(filename, 'rb') as handle:
 sim_num = param['sim_num']
 batch_num = param['batch_num']
 T_curr = param['T_curr']
+N_pop = param['N_pop']
 mut_param = param['mut_param']
 dt = param['dt']
 N_sims = param['N_sims']
@@ -35,20 +36,20 @@ t_extra = param['t_extra']
 date = param['date']
 code = param['code']
 filepath = param['filepath']
-filename = '{0}_{1}_sim={2}_batch={3}_favg_traces_T={2}_N={3}_b={4}_l={5}.pickle'.format(date,
-                                                                              code,
-                                                                              sim_num,
-                                                                              batch_num,
-                                                                              T_sim,
-                                                                              N_sims,
-                                                                              mut_param[0], 
-                                                                              mut_param[1]) 
+filename = (
+    '{0}_{1}_sim={2}_batch={3}_favg_traces_'
+    'N_pop={4}e{5}=T={6}_N={7}_b={8}_l={9}.pickle'.format(
+        date, code, sim_num, batch_num, 
+        str(N_pop)[0], int(np.log10(N_pop)), 
+        T_sim, N_sims, mut_param[0], mut_param[1]
+    ) 
+)
 # initialize list of dictionaries of arrays (i know, it's too much) 
 dataframes = []
 newtimes = np.linspace(0, T_sim, int((T_sim)/dt))
 # run N simulations
 for i in tqdm(range(N_sims), desc='Simulation Number: '):
-    LUCA = strain(N_pop=1e6, table=table[code], fitness=0, mu=2e-5)
+    LUCA = strain(N_pop=N_pop, table=table[code], fitness=0, mu=2e-5)
     sim = thunderflask(LUCA)
     sim.simulate(T_sim+t_extra, dt, T_curr, mut_param)
     t = sim.f_avgtrace['timepoints']
