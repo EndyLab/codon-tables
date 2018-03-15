@@ -26,7 +26,7 @@ N_sims = 3
 T_sim = 400
 t_extra = 5
 date = '3-14'
-code = 'Standard'
+code = 'Standard Code'
 filepath = ''
 filename = '{0}_{1}_favg_traces_T={2}_N={3}_b={4}_l={5}.pickle'.format(date,
                                                                        code,
