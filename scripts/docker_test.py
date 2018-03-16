@@ -13,12 +13,6 @@ from src.codonUtils import utils
 from src.bacteria import strain
 from sys import argv
 
-# get appropriate table
-table = {
-    'Standard Code' : utils.standardTable,
-    'Fast Fail' : ffgen.triplet(),
-    'Colorado' : utils.coloradoTable
-}
 # get dictionary of parameters from passed pickle file
 filename = argv[1]
 with open(filename, 'rb') as handle:
@@ -26,13 +20,14 @@ with open(filename, 'rb') as handle:
 # initialize variables
 sim_num = param['sim_num']
 batch_num = param['batch_num']
-T_curr = param['T_curr']
+strains = param['strains']
 N_pop = param['N_pop']
-mut_param = param['mut_param']
-dt = param['dt']
-N_sims = param['N_sims']
+T_0 = param['T_0']
 T_sim = param['T_sim']
+dt = param['dt']
 t_extra = param['t_extra']
+N_sims = param['N_sims']
+mut_param = param['mut_param']
 date = param['date']
 code = param['code']
 filepath = param['filepath']
@@ -49,9 +44,8 @@ dataframes = []
 newtimes = np.linspace(0, T_sim, int((T_sim)/dt))
 # run N simulations
 for i in tqdm(range(N_sims), desc='Simulation Number: '):
-    LUCA = strain(N_pop=N_pop, table=table[code], fitness=0, mu=2e-5)
-    sim = thunderflask(LUCA)
-    sim.simulate(T_sim+t_extra, dt, T_curr, mut_param)
+    sim = thunderflask(strains)
+    sim.simulate(T_sim+t_extra, dt, T_0, mut_param)
     t = sim.f_avgtrace['timepoints']
     f_avg = sim.f_avgtrace['f_avg']
     interp_fxn = interp(t, f_avg)
