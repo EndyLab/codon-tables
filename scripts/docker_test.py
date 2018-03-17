@@ -23,9 +23,10 @@ paramfile = datapath + "/params/" + os.environ['PARAM_FILE']
 awsbucket = os.environ['AWS_BUCKET'] if 'AWS_BUCKET' in os.environ else ''
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename=datapath + "/simulation.log",level=logging.DEBUG)
 
 os.makedirs(os.path.dirname(paramfile), exist_ok=True)
+logging.basicConfig(filename=datapath + "/simulation.log",level=logging.DEBUG)
+
 if awsbucket != "":
     logger.info("Downloading params from S3: {}/{}".format(awsbucket, paramfile))
     s3 = boto3.resource('s3')
