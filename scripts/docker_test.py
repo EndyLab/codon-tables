@@ -17,11 +17,13 @@ import os.path
 
 # get environmental variables and define filepaths
 datapath = os.environ['DATA_DIR']
-paramfile = datapath + '/params/' + os.environ['PARAM_FILE']
-with open(paramfile, 'rb') as handle:
-    param = pickle.load(handle)
-# response = requests.get(filename)
-# param = pickle.load(response.data)
+paramfile = os.environ['PARAM_FILE']
+
+# with open(paramfile, 'rb') as handle:
+#     param = pickle.load(handle)
+
+response = requests.get(paramfile)
+param = pickle.load(response.data)
 
 # initialize variables
 sim_num = param['sim_num']
