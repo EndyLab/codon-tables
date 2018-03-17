@@ -1,6 +1,7 @@
 import logging
 logging.basicConfig(filename="/simulation.log",level=logging.DEBUG)
 
+print('start')
 import numpy as np
 from scipy.interpolate import interp1d as interp
 import pandas as pd
@@ -19,15 +20,18 @@ import os
 import os.path
 import boto3
 
+print('env')
 # get environmental variables and define filepaths
 datapath = os.environ['DATA_DIR']
 paramfile = datapath + "/params/" + os.environ['PARAM_FILE']
 awsbucket = os.environ['AWS_BUCKET'] if 'AWS_BUCKET' in os.environ else ''
 
+print('dirs')
 os.makedirs(os.path.dirname(paramfile), exist_ok=True)
 logging.info("Starting simulation run")
 
 if awsbucket != "":
+    print('s3')
     logging.info("Downloading params from S3: {}/{}".format(awsbucket, paramfile))
     s3 = boto3.resource('s3')
     s3.Bucket(awsbucket).download_file(paramfile, paramfile)
