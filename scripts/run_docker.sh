@@ -7,4 +7,4 @@ echo "Updating requirements"
 pip3 install -r ./codon-tables/scripts/requirements.txt
 
 echo "Running!"
-python3 ./codon-tables/scripts/docker_test.py
+python3 ./codon-tables/scripts/docker_test.py 2>&1
