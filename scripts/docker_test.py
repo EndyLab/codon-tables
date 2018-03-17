@@ -17,13 +17,20 @@ import os.path
 
 # get environmental variables and define filepaths
 datapath = os.environ['DATA_DIR']
-paramfile = os.environ['PARAM_FILE']
+paramfile = datapath + "/params/" + os.environ['PARAM_FILE']
+awsbucket = os.environ['AWS_BUCKET']
 
-# with open(paramfile, 'rb') as handle:
-#     param = pickle.load(handle)
 
-response = requests.get(paramfile)
-param = pickle.load(response.data)
+os.makedirs(os.path.dirname(paramfile))
+if awsbucket != "":
+    s3 = boto3.resource('s3')
+    s3.Bucket(awsbucket).download_file(paramfile, paramfile)
+
+with open(paramfile, 'rb') as handle:
+    param = pickle.load(handle)
+
+# response = requests.get(paramfile)
+# param = pickle.load(response.data)
 
 # initialize variables
 sim_num = param['sim_num']
