@@ -10,11 +10,13 @@ LABEL software.documentation="https://github.com/EndyLab/codon-tables/README.md"
 LABEL tags="thundeflask"
 
 # get repository and set up any files necessary
-RUN pip3 install numpy scipy pandas matplotlib seaborn tqdm biopython networkx boto3
-RUN git clone "https://github.com/EndyLab/codon-tables.git" 
+RUN pip3 install numpy scipy pandas matplotlib seaborn tqdm biopython networkx boto3 requests
+RUN git clone "https://github.com/EndyLab/codon-tables.git"
 RUN cd codon-tables && git checkout docker
 
 # get environmental variable for parameters
 ENV param_pickle=""
-ENTRYPOINT ["python3", "codon-tables/scripts/docker_test.py"]
-CMD ["$param_pickle"]
+ENTRYPOINT []
+CMD ["git", "-C", "codon-tables", "pull"]
+CMD ["python3", "codon-tables/scripts/docker_test.py"]
+#CMD ["echo", "Hello, world"]
