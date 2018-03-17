@@ -11,13 +11,13 @@ from src.ffgen import ffgen
 from src.codonTable import codonTable
 from src.codonUtils import utils
 from src.bacteria import strain
-from sys import argv
 import requests
 import os
 
-# get dictionary of parameters from passed pickle file
-filename = os.environ['param_pickle']
-with open(filename, 'rb') as handle:
+# get environmental variables and define filepaths
+datapath = os.environ['DATA_DIR']
+paramfile = datapath + '/params/' + os.environ['PARAM_FILE']
+with open(paramfile, 'rb') as handle:
     param = pickle.load(handle)
 # response = requests.get(filename)
 # param = pickle.load(response.data)
@@ -36,6 +36,7 @@ mut_param = param['mut_param']
 date = param['date']
 code = param['code']
 filepath = param['filepath']
+# get output filename
 filename = (
     '{0}_{1}_sim={2}_batch={3}_favg_traces_'
     'N_pop={4}e{5}=T={6}_N={7}_b={8}_l={9}.pickle'.format(
@@ -44,6 +45,7 @@ filename = (
         T_sim, N_sims, mut_param[0], mut_param[1]
     )
 )
+outfile = datapath + '/output/' + filepath + filename
 # initialize list of dictionaries of arrays (i know, it's too much)
 dataframes = []
 newtimes = np.linspace(0, T_sim, int((T_sim)/dt))
@@ -65,5 +67,5 @@ for i in tqdm(range(N_sims), desc='Simulation Number: '):
 # package data into pandas dataframe
 df_sc = pd.concat(dataframes)
 # pickle results
-with open('{0}/{1}'.format(filepath, filename), 'wb') as handle:
+with open(outfile, 'wb') as handle:
     pickle.dump(df_sc, handle)

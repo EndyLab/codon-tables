@@ -18,7 +18,7 @@ N_sims = 100
 mut_param = [1, 2]
 date = '3-15'
 code = 'Standard Code'
-filepath = '/home/jonathan/Lab/Fast Fail/Traces'
+filepath = 'test1'
 
 # pickle that shiznit
 num_cores = 32
@@ -30,7 +30,7 @@ for params in paramDicts:
     n_sim = params['N_sims']
     print('Batch Num: {0}; n_sims = {1}'.format(batch_num, n_sim))
 
-pickle_path = './params/'
+pickle_path = '../data/params/'
 pickle_file = '{0}_{1}_{2}_{3}_params.pickle'.format(date, code, sim_num, batch_num)
 # import ipdb; ipdb.set_trace()
 paramPickler(paramDicts, pickle_path, pickle_file)
