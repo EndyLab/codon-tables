@@ -94,3 +94,12 @@ df_sc = pd.concat(dataframes)
 # pickle results
 with open(outfile, 'wb') as handle:
     pickle.dump(df_sc, handle)
+
+if awsbucket != "":
+    logging.info("Uploading output to S3: {}/{}".format(awsbucket, outfile))
+    s3 = boto3.resource('s3', region_name="us-west-1")
+
+    with open(outfile, 'rb') as f:
+        s3.Bucket(awsbucket).put_object(Key=outfile, Body=f)
+
+    logging.info("Upload complete")
