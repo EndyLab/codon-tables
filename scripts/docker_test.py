@@ -1,7 +1,5 @@
 import logging
-logging.basicConfig(level=logging.DEBUG)
-
-print('start')
+logging.basicConfig(level=logging.INFO)
 
 import numpy as np
 from scipy.interpolate import interp1d as interp
@@ -21,24 +19,21 @@ import os
 import os.path
 import boto3
 
-print('env')
 # get environmental variables and define filepaths
 datapath = os.environ['DATA_DIR']
 paramfile = datapath + "/params/" + os.environ['PARAM_FILE']
 awsbucket = os.environ['AWS_BUCKET'] if 'AWS_BUCKET' in os.environ else ''
 
-print('dirs')
 os.makedirs(os.path.dirname(paramfile), exist_ok=True)
 logging.info("Starting simulation run")
 
 if awsbucket != "":
-    print('s3')
     logging.info("Downloading params from S3: {}/{}".format(awsbucket, paramfile))
     s3 = boto3.resource('s3', region_name="us-west-1")
     s3.Bucket(awsbucket).download_file(paramfile, paramfile)
     logging.info("Download complete")
 
-logging.info("Loading param file", paramfile)
+logging.info("Loading param file {}".format(paramfile))
 with open(paramfile, 'rb') as handle:
     param = pickle.load(handle)
 
