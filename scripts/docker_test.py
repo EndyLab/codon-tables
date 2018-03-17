@@ -22,22 +22,24 @@ datapath = os.environ['DATA_DIR']
 paramfile = datapath + "/params/" + os.environ['PARAM_FILE']
 awsbucket = os.environ['AWS_BUCKET'] if 'AWS_BUCKET' in os.environ else ''
 
-logger = logging.getLogger(__name__)
-
 os.makedirs(os.path.dirname(paramfile), exist_ok=True)
 logging.basicConfig(filename=datapath + "/simulation.log",level=logging.DEBUG)
+logging.info("Starting simulation run")
 
 if awsbucket != "":
-    logger.info("Downloading params from S3: {}/{}".format(awsbucket, paramfile))
+    logging.info("Downloading params from S3: {}/{}".format(awsbucket, paramfile))
     s3 = boto3.resource('s3')
     s3.Bucket(awsbucket).download_file(paramfile, paramfile)
-    logger.info("Download complete")
+    logging.info("Download complete")
 
+logging.info("Loading param file", paramfile)
 with open(paramfile, 'rb') as handle:
     param = pickle.load(handle)
 
 # response = requests.get(paramfile)
 # param = pickle.load(response.data)
+
+logging.info("Initializing simulation")
 
 # initialize variables
 sim_num = param['sim_num']
@@ -65,6 +67,8 @@ filename = (
 
 outfile = datapath + '/output/' + filepath + filename
 os.makedirs(os.path.dirname(outfile), exist_ok=True)
+
+logging.info("Running simulation")
 
 # initialize list of dictionaries of arrays (i know, it's too much)
 dataframes = []
