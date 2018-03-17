@@ -18,7 +18,7 @@ import os.path
 # get environmental variables and define filepaths
 datapath = os.environ['DATA_DIR']
 paramfile = datapath + "/params/" + os.environ['PARAM_FILE']
-awsbucket = os.environ['AWS_BUCKET']
+awsbucket = if 'AWS_BUCKET' in os.environ['AWS_BUCKET'] else ''
 
 
 os.makedirs(os.path.dirname(paramfile))
