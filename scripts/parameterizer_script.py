@@ -22,14 +22,15 @@ filepath = '/home/jonathan/Lab/Fast Fail/Traces'
 
 # pickle that shiznit
 num_cores = 32
-params = genParamDict(sim_num, batch_num, strains, N_pop, T_0, T_sim, dt, t_extra, 
+params = genParamDict(sim_num, batch_num, strains, N_pop, T_0, T_sim, dt, t_extra,
                       N_sims, mut_param, date, code, filepath)
 paramDicts = batcher(params, num_cores)
 for params in paramDicts:
     batch_num = params['batch_num']
     n_sim = params['N_sims']
     print('Batch Num: {0}; n_sims = {1}'.format(batch_num, n_sim))
-pickle_path = '../pickletest/'
+
+pickle_path = './params/'
 pickle_file = '{0}_{1}_{2}_{3}_params.pickle'.format(date, code, sim_num, batch_num)
 # import ipdb; ipdb.set_trace()
 paramPickler(paramDicts, pickle_path, pickle_file)
