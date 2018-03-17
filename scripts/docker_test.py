@@ -13,6 +13,7 @@ from src.codonUtils import utils
 from src.bacteria import strain
 import requests
 import os
+import os.path
 
 # get environmental variables and define filepaths
 datapath = os.environ['DATA_DIR']
@@ -45,7 +46,10 @@ filename = (
         T_sim, N_sims, mut_param[0], mut_param[1]
     )
 )
+
 outfile = datapath + '/output/' + filepath + filename
+os.makedirs(os.path.dirname(outfile))
+
 # initialize list of dictionaries of arrays (i know, it's too much)
 dataframes = []
 newtimes = np.linspace(0, T_sim, int((T_sim)/dt))
