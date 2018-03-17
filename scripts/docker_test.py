@@ -1,3 +1,6 @@
+import logging
+logging.basicConfig(filename="/simulation.log",level=logging.DEBUG)
+
 import numpy as np
 from scipy.interpolate import interp1d as interp
 import pandas as pd
@@ -15,9 +18,6 @@ import requests
 import os
 import os.path
 import boto3
-import logging
-
-logging.basicConfig(filename="/simulation.log",level=logging.DEBUG)
 
 # get environmental variables and define filepaths
 datapath = os.environ['DATA_DIR']
