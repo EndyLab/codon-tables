@@ -21,7 +21,7 @@ paramfile = datapath + "/params/" + os.environ['PARAM_FILE']
 awsbucket = os.environ['AWS_BUCKET'] if 'AWS_BUCKET' in os.environ else ''
 
 
-os.makedirs(os.path.dirname(paramfile))
+os.makedirs(os.path.dirname(paramfile), exist_ok=True)
 if awsbucket != "":
     s3 = boto3.resource('s3')
     s3.Bucket(awsbucket).download_file(paramfile, paramfile)
@@ -57,7 +57,7 @@ filename = (
 )
 
 outfile = datapath + '/output/' + filepath + filename
-os.makedirs(os.path.dirname(outfile))
+os.makedirs(os.path.dirname(outfile), exist_ok=True)
 
 # initialize list of dictionaries of arrays (i know, it's too much)
 dataframes = []
