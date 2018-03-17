@@ -1,7 +1,8 @@
 import logging
-logging.basicConfig(filename="/simulation.log",level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 print('start')
+
 import numpy as np
 from scipy.interpolate import interp1d as interp
 import pandas as pd
