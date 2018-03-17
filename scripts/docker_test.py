@@ -28,8 +28,12 @@ os.makedirs(os.path.dirname(paramfile), exist_ok=True)
 logging.info("Starting simulation run")
 
 if awsbucket != "":
-    logging.info("Downloading params from S3: {}/{}".format(awsbucket, paramfile))
     s3 = boto3.resource('s3', region_name="us-west-1")
+    if 'AWS_BATCH_JOB_ARRAY_INDEX' in os.environ:
+        logging.info("Batch job: using updating param with index")
+        paramfile = paramfile.format(os.environ['AWS_BATCH_JOB_ARRAY_INDEX'])
+
+    logging.info("Downloading params from S3: {}/{}".format(awsbucket, paramfile))
     s3.Bucket(awsbucket).download_file(paramfile, paramfile)
     logging.info("Download complete")
 
