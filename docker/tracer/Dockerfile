@@ -17,7 +17,5 @@ RUN cd codon-tables && git checkout docker
 # get environmental variable for parameters
 ENV DATA_DIR=""
 ENV PARAM_FILE=""
-ENTRYPOINT []
-CMD ["git", "-C", "codon-tables", "pull"]
-CMD ["python3", "codon-tables/scripts/docker_test.py", "$DATA_DIR", "$PARAM_FILE"]
-#CMD ["echo", "Hello, world"]
+
+CMD ["./codon-tables/scripts/run_docker.sh"]
