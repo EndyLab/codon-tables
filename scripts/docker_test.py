@@ -14,6 +14,7 @@ from src.bacteria import strain
 import requests
 import os
 import os.path
+import boto3
 
 # get environmental variables and define filepaths
 datapath = os.environ['DATA_DIR']

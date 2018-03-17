@@ -24,3 +24,4 @@ six==1.11.0
 tqdm==4.19.8
 requests-aws
 requests-file
+boto3
