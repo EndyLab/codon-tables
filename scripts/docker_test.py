@@ -34,7 +34,7 @@ logging.info("Starting simulation run")
 if awsbucket != "":
     print('s3')
     logging.info("Downloading params from S3: {}/{}".format(awsbucket, paramfile))
-    s3 = boto3.resource('s3')
+    s3 = boto3.resource('s3', region_name="us-west-1")
     s3.Bucket(awsbucket).download_file(paramfile, paramfile)
     logging.info("Download complete")
 
