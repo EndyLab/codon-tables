@@ -16,10 +16,10 @@ import requests
 
 # get dictionary of parameters from passed pickle file
 filename = argv[1]
-# with open(filename, 'rb') as handle:
-#     param = pickle.load(handle)
-response = requests.get(filename)
-param = pickle.load(response.data)
+with open(filename, 'rb') as handle:
+    param = pickle.load(handle)
+# response = requests.get(filename)
+# param = pickle.load(response.data)
 
 # initialize variables
 sim_num = param['sim_num']
