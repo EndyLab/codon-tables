@@ -17,13 +17,14 @@ import os.path
 import boto3
 import logging
 
+logging.basicConfig(filename="/simulation.log",level=logging.DEBUG)
+
 # get environmental variables and define filepaths
 datapath = os.environ['DATA_DIR']
 paramfile = datapath + "/params/" + os.environ['PARAM_FILE']
 awsbucket = os.environ['AWS_BUCKET'] if 'AWS_BUCKET' in os.environ else ''
 
 os.makedirs(os.path.dirname(paramfile), exist_ok=True)
-logging.basicConfig(filename=datapath + "/simulation.log",level=logging.DEBUG)
 logging.info("Starting simulation run")
 
 if awsbucket != "":
