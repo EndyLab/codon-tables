@@ -13,9 +13,10 @@ from src.codonUtils import utils
 from src.bacteria import strain
 from sys import argv
 import requests
+import os
 
 # get dictionary of parameters from passed pickle file
-filename = argv[1]
+filename = os.environ['param_pickle']
 with open(filename, 'rb') as handle:
     param = pickle.load(handle)
 # response = requests.get(filename)
