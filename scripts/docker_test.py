@@ -15,6 +15,9 @@ import requests
 import os
 import os.path
 import boto3
+import logging
+
+logger = logging.getLogger(__name__)
 
 # get environmental variables and define filepaths
 datapath = os.environ['DATA_DIR']
@@ -24,8 +27,10 @@ awsbucket = os.environ['AWS_BUCKET'] if 'AWS_BUCKET' in os.environ else ''
 
 os.makedirs(os.path.dirname(paramfile), exist_ok=True)
 if awsbucket != "":
+    logger.info("Downloading params from S3: {}/{}".format(awsbucket, paramfile))
     s3 = boto3.resource('s3')
     s3.Bucket(awsbucket).download_file(paramfile, paramfile)
+    logger.info("Download complete")
 
 with open(paramfile, 'rb') as handle:
     param = pickle.load(handle)
