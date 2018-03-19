@@ -127,4 +127,7 @@ def paramUpload(from_path, bucket, s3_upload_dir, s3_region='us-west-1'):
     s3 = boto3.resource('s3', region_name=s3_region)
     # recursively walk through files to upload
     for root, dirs, files in os.walk(from_path):
-        for filename in files: 
+        for filename in files:
+            # get local and remote paths
+            local_path = os.path.join(root, filename)
+            outfile = s3_upload_dir + 'data/' + filepath + 'params/' + pickle_file
