@@ -1,8 +1,8 @@
-import datetime
 import pickle
+import os
 from copy import deepcopy as copy
 
-def genParamDict(sim_num, batch_num, strains, N_pop, T_0, T_sim, dt, t_extra, 
+def genParamDict(sim_num, batch_num, strains, N_pop, T_0, T_sim, dt, t_extra,
                  N_sims, mut_param, date, code, filepath):
     '''A function that is used to generate a dictionary of parameters, given a
     set of inputs. Used to pass parameters to fit_traces.py and derivative
@@ -87,8 +87,10 @@ def paramPickler(paramDicts, path='./', filenames=None):
     -------
     None
     '''
+    # create directories to pickle path as needed
+    os.makedirs(pickle_path, exist_ok=True)
     # if only one dictionary is passed, package into a list
-    if type(paramDicts) == dict: 
+    if type(paramDicts) == dict:
         paramDicts = [paramDicts]
     # handle filename autogeneration cases
     if (filenames==None) or not (len(paramDicts)==len(filenames)):
@@ -106,3 +108,23 @@ def paramPickler(paramDicts, path='./', filenames=None):
         with open(path + filename, 'wb') as handle:
             pickle.dump(params, handle)
     return
+
+def paramUpload(from_path, bucket, s3_upload_dir, s3_region='us-west-1'):
+    ''' A function used to recursively upload files from local directory to a specified location on s3.
+
+    Parameters
+    ----------
+    - str from_path: path to pickle files to upload
+    - str bucket: name of AWS bucket to upload to
+    - str s3_upload_dir: path to write param files to
+    - str s3_region: name of AWS region where bucket lives
+
+    Returns
+    -------
+    None
+    '''
+    # prepare boto3 client
+    s3 = boto3.resource('s3', region_name=s3_region)
+    # recursively walk through files to upload
+    for root, dirs, files in os.walk(from_path):
+        for filename in files: 
