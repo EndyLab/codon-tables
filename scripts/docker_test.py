@@ -24,9 +24,11 @@ datapath = os.environ['DATA_DIR']
 paramfile = datapath + "/params/" + os.environ['PARAM_FILE']
 awsbucket = os.environ['AWS_BUCKET'] if 'AWS_BUCKET' in os.environ else ''
 
+# make file directories if necessary
 os.makedirs(os.path.dirname(paramfile), exist_ok=True)
 logging.info("Starting simulation run")
 
+# optionally download parameter file from S3 (for AWS Batch)
 if awsbucket != "":
     s3 = boto3.resource('s3', region_name="us-west-1")
     if 'AWS_BATCH_JOB_ARRAY_INDEX' in os.environ:
@@ -37,16 +39,14 @@ if awsbucket != "":
     s3.Bucket(awsbucket).download_file(paramfile, paramfile)
     logging.info("Download complete")
 
+# load parameters
 logging.info("Loading param file {}".format(paramfile))
 with open(paramfile, 'rb') as handle:
     param = pickle.load(handle)
 
-# response = requests.get(paramfile)
-# param = pickle.load(response.data)
-
+# initialize simulation
 logging.info("Initializing simulation")
 
-# initialize variables
 sim_num = param['sim_num']
 batch_num = param['batch_num']
 strains = param['strains']
@@ -60,7 +60,8 @@ mut_param = param['mut_param']
 date = param['date']
 code = param['code']
 filepath = param['filepath']
-# get output filename
+
+# get output filename and make output filepath
 filename = (
     '{0}_{1}_sim={2}_batch={3}_favg_traces_'
     'N_pop={4}e{5}=T={6}_N={7}_b={8}_l={9}.pickle'.format(
@@ -75,9 +76,10 @@ os.makedirs(os.path.dirname(outfile), exist_ok=True)
 
 logging.info("Running simulation")
 
-# initialize list of dictionaries of arrays (i know, it's too much)
+# initialize list of dataframes and interpolation times
 dataframes = []
 newtimes = np.linspace(0, T_sim, int((T_sim)/dt))
+
 # run N simulations
 for i in tqdm(range(N_sims), desc='Simulation Number: '):
     sim = thunderflask(strains)
@@ -88,17 +90,20 @@ for i in tqdm(range(N_sims), desc='Simulation Number: '):
     newf = interp_fxn(newtimes)
     df = pd.DataFrame({
         'time' : newtimes,
-        'value' : newf,
+        'fitness' : newf,
         'sim' : [i for j in range(len(newf))],
         'code' : [code for j in range(len(newf))]
     })
     dataframes.append(df)
+
 # package data into pandas dataframe
 df_sc = pd.concat(dataframes)
+
 # pickle results
 with open(outfile, 'wb') as handle:
     pickle.dump(df_sc, handle)
 
+# optionally upload output to S3 (for AWS Batch)
 if awsbucket != "":
     logging.info("Uploading output to S3: {}/{}".format(awsbucket, outfile))
     s3 = boto3.resource('s3', region_name="us-west-1")
