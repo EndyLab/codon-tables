@@ -1,13 +1,18 @@
+import logging
+logging.basicConfig(level=logging.INFO)
+
 from datetime import date
 from src.bacteria import strain
 from src.parameterizer import *
 import pickle
 import os
-import boto3
 
 ##############
 # Prep stuff #
 ##############
+
+# absolute path to codon-table directory
+PATH='/home/jonathan/Lab/ATD/codon-tables/'
 
 # population variables
 N_pop = 3e5
@@ -31,13 +36,14 @@ s3_upload_dir = 'test-upload/'
 s3_region = 'us-west-1'
 
 # local pickle options
-pickle_path = '../data/' + filepath 'params/'
+pickle_path = PATH + 'data/' + filepath + 'params/'
 
 ############
 # Do stuff #
 ############
 
 # generate base parameter dictionary
+logging.info("Generating Base Parameter Dictionary")
 params = genParamDict(
     sim_num, batch_num, strains, N_pop,
     T_0, T_sim, dt, t_extra, N_sims, mut_param,
@@ -45,25 +51,26 @@ params = genParamDict(
 )
 
 # prepare set of parameter dictionaries
+logging.info("Generating Parameter Batch")
 paramDicts = batcher(params, num_cores)
+
 # inform user of the load sharing scheme
 for params in paramDicts:
     batch_num = params['batch_num']
     n_sim = params['N_sims']
     print('Batch Num: {0}; n_sims = {1}'.format(batch_num, n_sim))
 
-# pickle_file = '{0}_{1}_{2}_{3}_params.pickle'.format(date, code, sim_num, batch_num)
+# store parameter files in pickle format
+logging.info("Saving Parameter Files Locally to {0}".format(pickle_path))
+paramPickler(paramDicts, pickle_path)
 
-# output parameter dictionaries to pickle files
-paramPickler(paramDicts, pickle_path, pickle_file)
+# upload files to s3
+logging.info("Uploading Parameter Directory {0} to {1}:{2}".format(
+    pickle_path, bucketname, s3_upload_dir
+    )
+)
+import ipdb; ipdb.set_trace()
+s3_upload_path = s3_upload_dir + 'data/' + filepath + 'params/'
+paramUpload(pickle_path, bucketname, s3_upload_path, s3_region)
 
-# prepare boto3 client
-s3 = boto3.resource('s3', region_name=s3_region)
-
-# recursively loop through files to upload
-for root, dirs, files in os.walk(pickle_path):
-    for filename in files:
-        # get local path
-        local_path = os.path.join(root, filename)
-        # massage filename
-        outfile = s3_upload_dir + 'data/' + filepath + 'params/' + pickle_file
+logging.info("Success!")

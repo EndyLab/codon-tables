@@ -1,6 +1,7 @@
 import pickle
 import os
 from copy import deepcopy as copy
+import boto3
 
 def genParamDict(sim_num, batch_num, strains, N_pop, T_0, T_sim, dt, t_extra,
                  N_sims, mut_param, date, code, filepath):
@@ -73,13 +74,13 @@ def batcher(params, num_cores):
 
     return paramDicts
 
-def paramPickler(paramDicts, path='./', filenames=None):
+def paramPickler(paramDicts, outpath='./', filenames=None):
     '''A function used to automagically pickle parameter dictionaries.
 
     Parameters
     ----------
     - list<dict> paramDict: parameter dictionaries to pickle
-    - str path: the path to the pickling directory
+    - str outpath: the path to the pickling directory
     - list<str> filename: list of filenames for each paramDict. Generates names
         if none are given
 
@@ -88,7 +89,7 @@ def paramPickler(paramDicts, path='./', filenames=None):
     None
     '''
     # create directories to pickle path as needed
-    os.makedirs(pickle_path, exist_ok=True)
+    os.makedirs(outpath, exist_ok=True)
     # if only one dictionary is passed, package into a list
     if type(paramDicts) == dict:
         paramDicts = [paramDicts]
@@ -105,18 +106,18 @@ def paramPickler(paramDicts, path='./', filenames=None):
             filenames.append(pickle_file)
     # loop over dictionaries and filenames to pickle
     for (params, filename) in zip(paramDicts, filenames):
-        with open(path + filename, 'wb') as handle:
+        with open(outpath + filename, 'wb') as handle:
             pickle.dump(params, handle)
     return
 
-def paramUpload(from_path, bucket, s3_upload_dir, s3_region='us-west-1'):
+def paramUpload(from_path, bucket, s3_upload_path, s3_region='us-west-1'):
     ''' A function used to recursively upload files from local directory to a specified location on s3.
 
     Parameters
     ----------
     - str from_path: path to pickle files to upload
     - str bucket: name of AWS bucket to upload to
-    - str s3_upload_dir: path to write param files to
+    - str s3_upload_path: path to write param files to
     - str s3_region: name of AWS region where bucket lives
 
     Returns
@@ -130,4 +131,8 @@ def paramUpload(from_path, bucket, s3_upload_dir, s3_region='us-west-1'):
         for filename in files:
             # get local and remote paths
             local_path = os.path.join(root, filename)
-            outfile = s3_upload_dir + 'data/' + filepath + 'params/' + pickle_file
+            outfile = s3_upload_path + filename
+            # write to s3
+            with open(local_path, 'rb') as handle:
+                s3.Bucket(bucket).put_object(Key=outfile, Body=handle)
+    return
