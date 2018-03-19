@@ -12,7 +12,7 @@ LABEL tags="thundeflask"
 # get repository and set up any files necessary
 RUN git clone "https://github.com/EndyLab/codon-tables.git"
 RUN cd codon-tables && git checkout docker
-RUN pip3 install -r /codon-tables/scripts/requirements.txt
+RUN pip3 install -r /codon-tables/res/requirements.txt
 
 # get environmental variable for parameters
 ENV DATA_DIR=""
