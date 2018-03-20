@@ -71,7 +71,7 @@ filename = (
     )
 )
 
-outfile = datapath + '/output/' + filepath + filename
+outfile = datapath + 'output/' + filename
 os.makedirs(os.path.dirname(outfile), exist_ok=True)
 
 logging.info("Running simulation")
