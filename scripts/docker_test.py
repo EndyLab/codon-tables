@@ -21,7 +21,7 @@ import boto3
 
 # get environmental variables and define filepaths
 datapath = os.environ['DATA_DIR']
-paramfile = datapath + "/params/" + os.environ['PARAM_FILE']
+paramfile = datapath + "params/" + os.environ['PARAM_FILE']
 awsbucket = os.environ['AWS_BUCKET'] if 'AWS_BUCKET' in os.environ else ''
 
 # make file directories if necessary
