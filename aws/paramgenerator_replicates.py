@@ -69,7 +69,6 @@ logging.info("Uploading Parameter Directory {0} to {1}:{2}".format(
     pickle_path, bucketname, s3_upload_dir
     )
 )
-import ipdb; ipdb.set_trace()
 s3_upload_path = s3_upload_dir + 'data/' + filepath + 'params/'
 paramUpload(pickle_path, bucketname, s3_upload_path, s3_region)
 
