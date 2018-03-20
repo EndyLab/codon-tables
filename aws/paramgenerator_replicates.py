@@ -27,12 +27,12 @@ N_sims = 100
 mut_param = [1, 2]
 date = str(date.today())
 code = 'Standard Code'
-filepath = 'replicate-test/' # this is the name for the local directory for this sim
+filepath = 'replicate-test-2/' # this is the name for the local directory for this sim
 
 # s3 variables
 num_cores = 32
 bucketname = 'endylab-codon-table-simulations'
-s3_upload_dir = 'test-simulation_2/'
+s3_upload_dir = 'test-simulation-3/'
 s3_region = 'us-west-1'
 
 # local pickle options
