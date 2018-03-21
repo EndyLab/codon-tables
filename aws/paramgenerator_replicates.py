@@ -23,24 +23,25 @@ T_0 = 0
 T_sim = 1000
 dt = 0.1
 t_extra = 5
-N_sims = 100
+N_sims = 32
 mut_param = [1, 2]
 date = str(date.today())
 code = 'Standard Code'
 filepath = 'replicate-test-2/' # this is the name for the local directory for this sim
 
 # s3 variables
-num_cores = 32
+num_cores = 16
 bucketname = 'endylab-codon-table-simulations'
-s3_upload_dir = 'test-simulation-3/'
+s3_upload_dir = 'test-simulation-4/'
 s3_region = 'us-west-1'
-
-# local pickle options
-pickle_path = PATH + 'data/' + filepath + 'params/'
 
 ############
 # Do stuff #
 ############
+
+# define local and remote paths
+pickle_path = PATH + 'data/' + filepath + 'params/'
+s3_upload_path = s3_upload_dir + filepath + 'params/'
 
 # generate base parameter dictionary
 logging.info("Generating Base Parameter Dictionary")
@@ -69,7 +70,9 @@ logging.info("Uploading Parameter Directory {0} to {1}:{2}".format(
     pickle_path, bucketname, s3_upload_dir
     )
 )
-s3_upload_path = s3_upload_dir + 'data/' + filepath + 'params/'
 paramUpload(pickle_path, bucketname, s3_upload_path, s3_region)
-
-logging.info("Success!")
+success_string = (
+    "Success! Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'"
+    + " to see parameter files."
+).format(s3_region)
+logging.info(success_string)
