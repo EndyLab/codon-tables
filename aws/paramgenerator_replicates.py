@@ -2,7 +2,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 from datetime import date
-from src.bacteria import strain
 from src.parameterizer import *
 import pickle
 import os
@@ -17,14 +16,14 @@ s3_upload_path = S3_UPLOAD_DIR + FILEPATH + 'params/'
 # generate base parameter dictionary
 logging.info("Generating Base Parameter Dictionary")
 params = genParamDict(
-    SIM_NUM, BATCH_NUM, STRAINS, n_POP,
-    T_0, T_SIM, DT, T_EXTRA, n_SIMS, MUT_PARAM,
+    SIM_NUM, BATCH_NUM, STRAINS, N_POP,
+    T_0, T_SIM, DT, T_EXTRA, N_SIMS, MUT_PARAM,
     DATE, CODE, FILEPATH
 )
 
 # prepare set of parameter dictionaries
 logging.info("Generating Parameter Batch")
-paramDicts = batcher(PARAMS, NUM_CORES)
+paramDicts = batcher(params, NUM_CORES)
 
 # inform user of the load sharing scheme
 for params in paramDicts:
@@ -41,7 +40,7 @@ logging.info("Uploading Parameter Directory {0} to {1}:{2}".format(
     pickle_path, BUCKETNAME, S3_UPLOAD_DIR
     )
 )
-paramUpload(pickle_path, BUCKETNAME, S3_UPLOAD_PATH, S3_REGION)
+paramUpload(pickle_path, BUCKETNAME, s3_upload_path, S3_REGION)
 success_string = (
     "Success! Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'"
     + " to see parameter files."

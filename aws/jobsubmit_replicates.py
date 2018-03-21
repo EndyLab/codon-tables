@@ -25,7 +25,7 @@ containerOverrides = {
         },
         {
             'name' : 'PARAM_FILE',
-            'value' : GENERALIZED_FILENAME
+            'value' : FILENAME
         },
         {
             'name' : 'AWS_BUCKET',
@@ -36,16 +36,14 @@ containerOverrides = {
 retryStrategy={
     'attempts' : ATTEMPTS # or however many you want
 }
-############
-# Do stuff #
-############
 
+# submit job to AWS BATCH
 logging.info("Submitting {0} to {1}".format(JOBNAME, JOBQUEUE))
 batchClient = boto3.client('batch')
 response = batchClient.submit_job(
-    jobName=JOBNAME, jobQueue=JOBQUEUE, arrayProperties=ARRAYPROPERTIES,
+    jobName=JOBNAME, jobQueue=JOBQUEUE, arrayProperties=arrayProperties,
     dependsOn=DEPENDS_ON, jobDefinition=JOBDEFINITION, parameters=PARAMETERS,
-    containerOverrides=CONTAINEROVERRIDES, retryStrategy=RETRYSTRATEGY
+    containerOverrides=containerOverrides, retryStrategy=retryStrategy
 )
 success_string = (
     "Job Submitted! Check https://{0}.console.aws.amazon.com/batch/home?region={0}#/dashboard"
