@@ -18,4 +18,4 @@ RUN pip3 install -r /codon-tables/res/requirements.txt
 ENV DATA_DIR=""
 ENV PARAM_FILE=""
 
-CMD ["./codon-tables/scripts/run_docker.sh"]
+CMD ["./codon-tables/scripts/run_docker_tracer.sh"]
