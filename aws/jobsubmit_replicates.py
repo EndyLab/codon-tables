@@ -10,7 +10,7 @@ import boto3
 
 # s3 variables
 bucketname = 'endylab-codon-table-simulations'
-s3_home_dir = 'test-simulation-4/python-jobput-test/
+s3_home_dir = 'test-simulation-4/python-jobput-test/'
 s3_region = 'us-west-1'
 generalized_filename = '2018-03-19_Standard Code_0_{0}_params.pickle'
 
