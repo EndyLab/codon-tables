@@ -56,7 +56,7 @@ containerOverrides = {
             'value' : s3_home_dir
         },
         {
-            'name' : 'PARAM_FILE'
+            'name' : 'PARAM_FILE',
             'value' : generalized_filename
         },
         {
@@ -74,7 +74,7 @@ retryStrategy={
 
 logging.info("Submitting {0} to {1}".format(jobName, jobQueue))
 batchClient = boto3.client('batch')
-response = batchClient(
+response = batchClient.submit_job(
     jobName=jobName, jobQueue=jobQueue, arrayProperties=arrayProperties,
     dependsOn=dependsOn, jobDefinition=jobDefinition, parameters=parameters,
     containerOverrides=containerOverrides, retryStrategy=retryStrategy
