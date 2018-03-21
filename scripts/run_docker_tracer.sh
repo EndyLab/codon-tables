@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Updating from git"
-git -C codon-tables pull
+git -C codon-tables pull origin docker
 
 echo "Updating requirements"
 pip3 install -r ./codon-tables/res/requirements.txt
