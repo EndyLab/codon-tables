@@ -4,83 +4,51 @@ logging.basicConfig(level=logging.INFO)
 import os
 import boto3
 
-##############
-# Prep stuff #
-##############
-
-# s3 variables
-bucketname = 'endylab-codon-table-simulations'
-s3_home_dir = 'test-simulation-4/python-jobput-test/'
-s3_region = 'us-west-1'
-generalized_filename = '2018-03-19_Standard Code_0_{0}_params.pickle'
-
-# AWS Batch variables
-num_cores = 16
-RAM = 2000 # in MB
-attempts = 2 # per instance
-jobName = 'python-generated-job'
-jobDefinition = 'arn:aws:batch:us-west-1:508804160265:job-definition/codon-sim-replicates:1'
-jobQueue = 'arn:aws:batch:us-west-1:508804160265:job-queue/codon-simulation-jobqueue'
+# import environmental variables from .config_replicates.py
+from config_replicates import *
 
 # define some path names
-s3_param_dir = s3_home_dir + 'params/'
-s3_output_dir = s3_home_dir + 'output/'
+S3_PARAM_DIR = S3_HOME_DIR + 'params/'
+S3_OUTPUT_DIR = S3_HOME_DIR + 'output/'
 
-# job specific parameters
-dependsOn=[]
-# dependsOn=[
-#     {
-#         'jobId' : 'name of dependent job'
-#         'type' : 'N_TO_N'/'SEQUENTIAL'
-#     },
-#     {
-#         'jobId' : 'name of dependent job'
-#         'type' : 'N_TO_N'/'SEQUENTIAL'
-#     }
-# ]
-parameters = {}
-# parameters = {
-#     'string' : 'string',
-#     'string' : 'string'
-# }
 ## DO NOT TOUCH: JOB INVARIANT PARAMETERS ##
 arrayProperties = {
-    'size' : num_cores
+    'size' : NUM_CORES
 }
 containerOverrides = {
-    'vcpus' : num_cores,
+    'vcpus' : NUM_CORES,
     'memory' : RAM, # in MB
     'environment' : [
         {
             'name' : 'DATA_DIR',
-            'value' : s3_home_dir
+            'value' : S3_HOME_DIR
         },
         {
             'name' : 'PARAM_FILE',
-            'value' : generalized_filename
+            'value' : GENERALIZED_FILENAME
         },
         {
             'name' : 'AWS_BUCKET',
-            'value' : bucketname
+            'value' : BUCKETNAME
         }
     ],
 }
 retryStrategy={
-    'attempts' : attempts # or however many you want
+    'attempts' : ATTEMPTS # or however many you want
 }
 ############
 # Do stuff #
 ############
 
-logging.info("Submitting {0} to {1}".format(jobName, jobQueue))
+logging.info("Submitting {0} to {1}".format(JOBNAME, JOBQUEUE))
 batchClient = boto3.client('batch')
 response = batchClient.submit_job(
-    jobName=jobName, jobQueue=jobQueue, arrayProperties=arrayProperties,
-    dependsOn=dependsOn, jobDefinition=jobDefinition, parameters=parameters,
-    containerOverrides=containerOverrides, retryStrategy=retryStrategy
+    jobName=JOBNAME, jobQueue=JOBQUEUE, arrayProperties=ARRAYPROPERTIES,
+    dependsOn=DEPENDS_ON, jobDefinition=JOBDEFINITION, parameters=PARAMETERS,
+    containerOverrides=CONTAINEROVERRIDES, retryStrategy=RETRYSTRATEGY
 )
 success_string = (
     "Job Submitted! Check https://{0}.console.aws.amazon.com/batch/home?region={0}#/dashboard"
     + " to visually track simulation status."
-).format(s3_region)
+).format(S3_REGION)
 logging.info(success_string)
