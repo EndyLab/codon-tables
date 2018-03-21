@@ -5,12 +5,12 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pickle
 from tqdm import tqdm
-from thunderflask import thunderflask
-from bacteria import strain
-from ffgen import ffgen
-from codonTable import codonTable
-from codonUtils import utils
-from bacteria import strain
+from src.thunderflask import thunderflask
+from src.bacteria import strain
+from src.ffgen import ffgen
+from src.codonTable import codonTable
+from src.codonUtils import utils
+from src.bacteria import strain
 
 # get appropriate table
 table = {
@@ -20,18 +20,18 @@ table = {
 }
 # initialize some variables
 T_curr = 0
-mut_param = [2, 3.5]
+mut_param = [1, 2]
 dt = 0.1
-N_sims = 1
-T_sim = 10
+N_sims = 100
+T_sim = 1000
 t_extra = 5
-date = '2-22'
-code = 'Standard Code'
-filepath = 'res/2-14 Traces'
+date = '3-13'
+code = 'Colorado'
+filepath = '/home/jonathan/Lab/Fast Fail/Traces'
 filename = '{0}_{1}_favg_traces_T={2}_N={3}_b={4}_l={5}.pickle'.format(date,
                                                                        code,
                                                                        T_sim,
-                                                                       N_sims,
+                                                                      N_sims,
                                                                       mut_param[0],
                                                                       mut_param[1]) 
 # initialize list of dictionaries of arrays (i know, it's too much) 
