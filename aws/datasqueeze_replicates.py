@@ -46,15 +46,18 @@ for s3_filename in pbar:
 # loop through files and grab dataframe
 logging.info("Concatenating Dataframes")
 df_list = []
-sim = 0
+sim_increment = 0
 pbar = tqdm(local_filenames)
 for filename in pbar:
     pbar.set_description('Concatenating {0}'.format(filename))
     with open(filename, 'rb') as handle:
         df = pickle.load(handle)
-    df['sim'] = sim
+    # label individual simulation runs
+    n_sims = max(df['sim'])
+    df['sim'] += sim_increment
     df_list.append(df)
-    sim +=1
+    # increment sim_increment counter
+    sim_increment += (n_sims + 1)
 
 # concatenate dataframes and save to output file
 summary_file = (
