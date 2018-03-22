@@ -16,7 +16,7 @@ arrayProperties = {
     'size' : NUM_CORES
 }
 containerOverrides = {
-    'vcpus' : NUM_CORES,
+    'vcpus' : 1,
     'memory' : RAM, # in MB
     'environment' : [
         {

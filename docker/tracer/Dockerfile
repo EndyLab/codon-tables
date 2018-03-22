@@ -10,8 +10,11 @@ LABEL software.documentation="https://github.com/EndyLab/codon-tables/README.md"
 LABEL tags="thundeflask"
 
 # get repository and set up any files necessary
+RUN apt update && apt install nano
 RUN git clone "https://github.com/EndyLab/codon-tables.git"
-RUN cd codon-tables && git checkout docker
+RUN git config --global user.email "<>"
+RUN git config --global user.name "dummy"
+RUN git -C codon-tables pull origin docker
 RUN pip3 install -r /codon-tables/res/requirements.txt
 
 # get environmental variable for parameters
