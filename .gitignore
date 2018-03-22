@@ -15,3 +15,4 @@ aws/config_replicates.py
 ./src/.ipynb_checkpoints
 ./misc/.ipynb_checkpoints
 ./scripts/.ipynb_checkpoints
+./aws/smoosh.py

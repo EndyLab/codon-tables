@@ -10,7 +10,7 @@ import os
 from config_replicates import *
 
 # define local and remote paths
-pickle_path = PATH + 'data/' + FILEPATH + 'params/'
+pickle_path = PATH + 'data/' + S3_HOME_DIR + 'params/' # SAME AS S3 PATH
 s3_upload_path = S3_UPLOAD_DIR + FILEPATH + 'params/'
 
 # generate base parameter dictionary
