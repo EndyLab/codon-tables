@@ -1,6 +1,7 @@
 import pickle
 import os
 from copy import deepcopy as copy
+from tqdm import tqdm
 import boto3
 
 def genParamDict(sim_num, batch_num, strains, N_pop, T_0, T_sim, dt, t_extra,
@@ -110,7 +111,7 @@ def paramPickler(paramDicts, outpath='./', filenames=None):
             pickle.dump(params, handle)
     return
 
-def paramUpload(from_path, bucket, s3_upload_path, s3_region='us-west-1'):
+def paramUpload(from_path, bucket, s3_upload_path, s3_region='us-west-1', show_progress=True):
     ''' A function used to recursively upload files from local directory to a specified location on s3.
 
     Parameters
@@ -119,6 +120,7 @@ def paramUpload(from_path, bucket, s3_upload_path, s3_region='us-west-1'):
     - str bucket: name of AWS bucket to upload to
     - str s3_upload_path: path to write param files to
     - str s3_region: name of AWS region where bucket lives
+    - bool show_progress: optionally tells uploader to update user
 
     Returns
     -------
@@ -128,10 +130,12 @@ def paramUpload(from_path, bucket, s3_upload_path, s3_region='us-west-1'):
     s3 = boto3.resource('s3', region_name=s3_region)
     # recursively walk through files to upload
     for root, dirs, files in os.walk(from_path):
-        for filename in files:
+        to_iter = tqdm(files) if show_progress else files
+        for filename in to_iter:
             # get local and remote paths
             local_path = os.path.join(root, filename)
             outfile = s3_upload_path + filename
+            if show_progress: to_iter.set_description('Uploading {0}'.format(outfile))
             # write to s3
             with open(local_path, 'rb') as handle:
                 s3.Bucket(bucket).put_object(Key=outfile, Body=handle)

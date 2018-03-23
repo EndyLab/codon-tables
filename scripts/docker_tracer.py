@@ -7,6 +7,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pickle
+from copy import deepcopy as copy
 from tqdm import tqdm
 from src.thunderflask import thunderflask
 from src.bacteria import strain
@@ -82,7 +83,8 @@ newtimes = np.linspace(0, T_sim, int((T_sim)/dt))
 
 # run N simulations
 for i in tqdm(range(N_sims), desc='Simulation Number: '):
-    sim = thunderflask(strains)
+    straincopy = copy(strains)
+    sim = thunderflask(straincopy)
     sim.simulate(T_sim+t_extra, dt, T_0, mut_param)
     t = sim.f_avgtrace['timepoints']
     f_avg = sim.f_avgtrace['f_avg']

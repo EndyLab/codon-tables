@@ -1,10 +1,10 @@
 #!/bin/bash
 
 echo "Updating from git"
-git -C codon-tables pull
+git -C codon-tables pull origin docker
 
 echo "Updating requirements"
 pip3 install -r ./codon-tables/res/requirements.txt
 
 echo "Running!"
-python3 ./codon-tables/scripts/docker_test.py 2>&1
+python3 ./codon-tables/scripts/docker_tracer.py 2>&1
