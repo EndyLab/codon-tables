@@ -7,7 +7,6 @@ from src.thunderflask import thunderflask
 from src.bacteria import strain
 from tqdm import tqdm
 
-# run several iterations
 # populate sim
 LUCA = strain(N_pop=1e6, fitness=0, mu=2e-5)
 sim = thunderflask(LUCA)
