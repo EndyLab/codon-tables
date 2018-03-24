@@ -15,6 +15,7 @@ from tqdm import tqdm
 import random
 from random import shuffle
 import pickle
+import boto3
 from copy import deepcopy as copy
 from src.codonTable import codonTable
 from src.codonUtils import utils
@@ -26,9 +27,10 @@ sns.set_context("paper")
 # set variables
 bucketname = 'endylab-codon-table-simulations'
 s3_path = 'manuscript/fig3b/'
+s3_region = 'us-west-1'
 
 # get pickle files and concatenate
-s3 = boto3.client('s3', region_name=S3_REGION)
+s3 = boto3.client('s3', region_name=s3_region)
 logging.info("Getting Output Files From {0}:{1}".format(bucketname, s3_path))
 filenames = [
     dict['Key'] for dict in s3.list_objects_v2(
