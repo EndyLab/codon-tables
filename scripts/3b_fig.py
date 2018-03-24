@@ -56,7 +56,9 @@ logging.info("Download Successful!")
 # concatenate dataframes into one big dataframe
 logging.info("Unpacking Dataframes")
 dfs = []
-for file in tqdm(local_filename, desc='Unpacking'):
+pbar = tqdm(local_filenames)
+for file in pbar:
+    pbar.set_description('Unpacking {0}'.format(file))
     with open(file, 'rb') as handle:
         dfs.append(pickle.load(handle))
 logging.info("Concatenating Dataframes")
