@@ -5,6 +5,8 @@ logging.basicConfig(level=logging.INFO)
 import numpy as np
 import pandas as pd
 import math
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
 from scipy import stats
