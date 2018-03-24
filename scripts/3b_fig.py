@@ -15,6 +15,8 @@ from tqdm import tqdm
 import random
 from random import shuffle
 import pickle
+import os
+import os.path
 import boto3
 from copy import deepcopy as copy
 from src.codonTable import codonTable
