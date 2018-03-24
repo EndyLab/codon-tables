@@ -43,7 +43,7 @@ filenames = [
 ]
 # download files locally
 logging.info("Writing Batch Output Files Locally")
-
+import ipdb; ipdb.set_trace()
 pbar = tqdm(filenames)
 local_filenames = []
 for s3_filename in pbar:
