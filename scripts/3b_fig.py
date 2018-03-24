@@ -75,8 +75,8 @@ def plotter(df, code, color):
         plt.plot(t, f, color=color, alpha=0.1)
         del t, f
     df_mean = local_df.groupby('time').mean()['fitness']
-    t_mean = np.array(local_df_mean.index)
-    f_mean = np.array(local_df_mean.values)
+    t_mean = np.array(df_mean.index)
+    f_mean = np.array(df_mean.values)
     mean_handle = plt.plot(t_mean, f_mean, color=color, alpha=0.7, label='{0} (mean)'.format(code))
 
 logging.info("Plotting Standard Code")
@@ -93,7 +93,22 @@ plotter(DF, 'FF20', 'green')
 # plotter(DF, 'Standard Code', 'gray')
 
 # format plot
+logging.info("Formatting Figure")
 sns.set_style('white')
 sns.set_style('ticks')
 sns.despine()
 sns.plt.ylim(0,1.3)
+
+# save output
+logging.info("Saving Figure to S3")
+figure_filename = '~/3b_vector.svg'
+figure_s3path = s3_path + figure_filename
+plt.savefig(figure_filename)
+with open(figure_filename, 'rb') as data:
+    s3.upload_fileobj(data, bucketname, figure_s3path)
+success_string = (
+    "Success! Figure saved to {0}:{1}. ".format(bucketname, figure_s3path)
+    + "Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'".format(s3_region)
+    + " to see output figure file."
+)
+logging.info(success_string)
