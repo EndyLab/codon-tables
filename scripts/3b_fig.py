@@ -74,7 +74,7 @@ def replicate_plotter(df, code, color):
     for i in tqdm(range(max(df['sim'])+1), desc='Plotting individual traces for {0}'.format(code)):
         t = np.array(local_df[local_df['sim'] == i]['time'])
         f = np.array(local_df[local_df['sim'] == i]['fitness'])
-        plt.plot(t, f, color=color, alpha=0.01)
+        plt.plot(t, f, color=color, alpha=0.03)
         del t, f
     del local_df
 
@@ -95,9 +95,9 @@ replicate_plotter(DF, 'FF20', 'green')
 logging.info("Plotting Mean (Standard Code)")
 mean_plotter(DF, 'Standard Code', 'black')
 logging.info("Plotting Mean (Colorado Code)")
-mean_plotter(DF, 'Standard Code', 'black')
+mean_plotter(DF, 'Colorado', 'red')
 logging.info("Plotting Mean (FF20)")
-mean_plotter(DF, 'Standard Code', 'black')
+mean_plotter(DF, 'FF20', 'green')
 
 # logging.info("Plotting FF16")
 # plotter(DF, 'FF16', 'gray')
