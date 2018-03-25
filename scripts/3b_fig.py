@@ -79,14 +79,13 @@ def replicate_plotter(df, code, color):
     del local_df
 
 def interleave_plotter(DF, colordict):
-    local_DF = copy(DF)
-    for i in tqdm(range(max(local_DF['sim'])+1), desc='Plotting individual traces (interleaved)'):
+    for i in tqdm(range(max(DF['sim'])+1), desc='Plotting individual traces (interleaved)'):
         for code in colordict.keys():
+            local_DF = DF[DF['code'] == code]
             t = np.array(local_DF[local_DF['sim'] == i]['time'])
             f = np.array(local_DF[local_DF['sim'] == i]['fitness'])
             plt.plot(t, f, color=colordict[code], alpha=0.03)
             del t, f
-    del local_DF
 
 def mean_plotter(df, code, color):
     local_df = copy(df[df['code'] == code])
@@ -110,7 +109,7 @@ interleave_plotter(DF, colordict)
 # logging.info("Plotting Replicates (FF20)")
 # replicate_plotter(DF, 'FF20', 'green')
 logging.info("Plotting Mean (Standard Code)")
-mean_plotter(DF, 'Standard Code', 'black')
+mean_plotter(DF, 'Standard Code', 'blue')
 logging.info("Plotting Mean (Colorado Code)")
 mean_plotter(DF, 'Colorado', 'red')
 logging.info("Plotting Mean (FF20)")
