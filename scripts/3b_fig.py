@@ -27,6 +27,8 @@ from src.thunderflask import thunderflask
 from src.bacteria import strain
 
 sns.set_context("paper")
+sns.set_style('white')
+sns.set_style('ticks')
 
 # set variables
 bucketname = 'endylab-codon-table-simulations'
@@ -94,10 +96,9 @@ plotter(DF, 'FF20', 'green')
 
 # format plot
 logging.info("Formatting Figure")
-sns.set_style('white')
-sns.set_style('ticks')
 sns.despine()
-sns.plt.ylim(0,1.3)
+plt.xlim([0, 1000])
+plt.ylim([0, 1.3])
 
 # save output
 logging.info("Saving Figure to S3")
