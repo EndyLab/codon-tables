@@ -105,7 +105,7 @@ logging.info("Saving Figure to S3")
 figure_basename = '3b_vector.svg'
 figure_path = '/home/ubuntu' + figure_basename
 figure_s3path = s3_path + figure_basename
-plt.savefig(figure_filename)
+plt.savefig(figure_path)
 with open(figure_path, 'rb') as data:
     s3.upload_fileobj(data, bucketname, figure_s3path)
 success_string = (
