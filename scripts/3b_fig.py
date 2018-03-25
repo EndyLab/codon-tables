@@ -69,24 +69,36 @@ logging.info("Concatenating Dataframes")
 DF = pd.concat(dfs, copy=False)
 
 # begin plotting
-def plotter(df, code, color):
+def replicate_plotter(df, code, color):
     local_df = copy(df[df['code'] == code])
     for i in tqdm(range(max(df['sim'])+1), desc='Plotting individual traces for {0}'.format(code)):
         t = np.array(local_df[local_df['sim'] == i]['time'])
         f = np.array(local_df[local_df['sim'] == i]['fitness'])
-        plt.plot(t, f, color=color, alpha=0.1)
+        plt.plot(t, f, color=color, alpha=0.01)
         del t, f
+    del local_df
+
+def mean_plotter(df, code, color):
+    local_df = copy(df[df['code'] == code])
     df_mean = local_df.groupby('time').mean()['fitness']
     t_mean = np.array(df_mean.index)
     f_mean = np.array(df_mean.values)
-    mean_handle = plt.plot(t_mean, f_mean, color=color, alpha=0.7, label='{0} (mean)'.format(code))
+    mean_handle = plt.plot(t_mean, f_mean, color=color, alpha=1, linewidth=3, label='{0}'.format(code))
+    del local_df
 
-logging.info("Plotting Standard Code")
-plotter(DF, 'Standard Code', 'gray')
-logging.info("Plotting Colorado Code")
-plotter(DF, 'Colorado', 'red')
-logging.info("Plotting FF20")
-plotter(DF, 'FF20', 'green')
+logging.info("Plotting Replicates (Standard Code)")
+replicate_plotter(DF, 'Standard Code', 'gray')
+logging.info("Plotting Replicates (Colorado Code)")
+replicate_plotter(DF, 'Colorado', 'red')
+logging.info("Plotting Replicates (FF20)")
+replicate_plotter(DF, 'FF20', 'green')
+logging.info("Plotting Mean (Standard Code)")
+replicate_plotter(DF, 'Standard Code', 'black')
+logging.info("Plotting Mean (Colorado Code)")
+replicate_plotter(DF, 'Standard Code', 'black')
+logging.info("Plotting Mean (FF20)")
+replicate_plotter(DF, 'Standard Code', 'black')
+
 # logging.info("Plotting FF16")
 # plotter(DF, 'FF16', 'gray')
 # logging.info("Plotting RED20")
