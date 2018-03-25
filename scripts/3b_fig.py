@@ -80,7 +80,7 @@ def replicate_plotter(df, code, color):
 
 def interleave_plotter(DF, colordict):
     local_DF = copy(DF)
-    for i in tqdm(range(max(df['sim'])+1), desc='Plotting individual traces (interleaved)'):
+    for i in tqdm(range(max(local_DF['sim'])+1), desc='Plotting individual traces (interleaved)'):
         for code in colordict.keys():
             t = np.array(local_DF[local_DF['sim'] == i]['time'])
             f = np.array(local_DF[local_DF['sim'] == i]['fitness'])
