@@ -102,10 +102,11 @@ plt.ylim([0, 1.3])
 
 # save output
 logging.info("Saving Figure to S3")
-figure_filename = '~/3b_vector.svg'
-figure_s3path = s3_path + figure_filename
+figure_basename = '3b_vector.svg'
+figure_path = '/home/ubuntu' + figure_basename
+figure_s3path = s3_path + figure_basename
 plt.savefig(figure_filename)
-with open(figure_filename, 'rb') as data:
+with open(figure_path, 'rb') as data:
     s3.upload_fileobj(data, bucketname, figure_s3path)
 success_string = (
     "Success! Figure saved to {0}:{1}. ".format(bucketname, figure_s3path)
