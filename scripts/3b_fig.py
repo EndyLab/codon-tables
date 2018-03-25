@@ -103,7 +103,7 @@ plt.ylim([0, 1.3])
 # save output
 logging.info("Saving Figure to S3")
 figure_basename = '3b_vector.svg'
-figure_path = '/home/ubuntu' + figure_basename
+figure_path = '/home/ubuntu/' + figure_basename
 figure_s3path = s3_path + figure_basename
 plt.savefig(figure_path)
 with open(figure_path, 'rb') as data:
