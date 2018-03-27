@@ -11,6 +11,9 @@ import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
 from scipy import stats
 from scipy.special import erfc
+from scipy.signal import gaussian
+from scipy.ndimage import convolve1d
+import peakutils
 import pandas as pd
 import seaborn as sns
 from tqdm import tqdm
@@ -68,69 +71,189 @@ for file in pbar:
 logging.info("Concatenating Dataframes")
 DF = pd.concat(dfs, copy=False)
 
-# begin plotting
-def replicate_plotter(df, code, color):
-    local_df = copy(df[df['code'] == code])
-    for i in tqdm(range(max(df['sim'])+1), desc='Plotting individual traces for {0}'.format(code)):
-        t = np.array(local_df[local_df['sim'] == i]['time'])
-        f = np.array(local_df[local_df['sim'] == i]['fitness'])
-        plt.plot(t, f, color=color, alpha=0.03)
-        del t, f
-    del local_df
+# extract dataframe for figure 3
+wanted_codes = ['Colorado', 'Standard Code', 'FF20']
+f = lambda code: code in wanted_codes
+DF_3b = DF.loc[DF['code'].map(f)]
 
-def interleave_plotter(DF, colordict):
-    for i in tqdm(range(max(DF['sim'])+1), desc='Plotting individual traces (interleaved)'):
-        temp_DF = DF[DF['sim'] == i]
-        for code in colordict.keys():
-            t = np.array(temp_DF[temp_DF['code'] == code]['time'])
-            f = np.array(temp_DF[temp_DF['code'] == code]['fitness'])
-            plt.plot(t, f, color=colordict[code], alpha=0.03)
-            del t, f
-
-def mean_plotter(df, code, color):
-    local_df = copy(df[df['code'] == code])
-    df_mean = local_df.groupby('time').mean()['fitness']
-    t_mean = np.array(df_mean.index)
-    f_mean = np.array(df_mean.values)
-    mean_handle = plt.plot(t_mean, f_mean, color=color, alpha=1, linewidth=3, label='{0}'.format(code))
-    del local_df
-
-logging.info("Plotting Interleaved Replicates")
+logging.info("Plotting 3B: Mean Fitness Traces")
 colordict = {
     'Standard Code' : 'blue',
     'Colorado' : 'red',
     'FF20' : 'green'
 }
-interleave_plotter(DF, colordict)
-# logging.info("Plotting Replicates (Standard Code)")
-# replicate_plotter(DF, 'Standard Code', 'gray')
-# logging.info("Plotting Replicates (Colorado Code)")
-# replicate_plotter(DF, 'Colorado', 'red')
-# logging.info("Plotting Replicates (FF20)")
-# replicate_plotter(DF, 'FF20', 'green')
-logging.info("Plotting Mean (Standard Code)")
-mean_plotter(DF, 'Standard Code', 'blue')
-logging.info("Plotting Mean (Colorado Code)")
-mean_plotter(DF, 'Colorado', 'red')
-logging.info("Plotting Mean (FF20)")
-mean_plotter(DF, 'FF20', 'green')
-
-# logging.info("Plotting FF16")
-# plotter(DF, 'FF16', 'gray')
-# logging.info("Plotting RED20")
-# plotter(DF, 'RED20', 'gray')
-# logging.info("Plotting Standard Code")
-# plotter(DF, 'Standard Code', 'gray')
-
+ax1 = sns.tsplot(
+    data=DF_3b,
+    time='time',
+    value='fitness',
+    unit='sim',
+    condition='code',
+    color=colordict,
+    ci='sd'
+)
 # format plot
-logging.info("Formatting Figure")
+logging.info("Formatting 3B")
 sns.despine()
 plt.xlim([0, 1000])
 plt.ylim([0, 1.3])
+plt.legend()
+plt.title('Mean Fitness vs Time (1000 Simulations)')
+plt.xlabel('Time (in generations)')
+plt.ylabel('Mean Fitness')
 
 # save output
-logging.info("Saving Figure to S3")
+logging.info("Saving Figure 3B to S3")
 figure_basename = '3b_vector.svg'
+figure_path = '/home/ubuntu/' + figure_basename
+figure_s3path = s3_path + figure_basename
+plt.savefig(figure_path)
+with open(figure_path, 'rb') as data:
+    s3.upload_fileobj(data, bucketname, figure_s3path)
+success_string = (
+    "Success! Figure saved to {0}:{1}. ".format(bucketname, figure_s3path)
+    + "Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'".format(s3_region)
+    + " to see output figure file."
+)
+logging.info(success_string)
+
+# continue on to figure 3c and 3d
+logging.info('Calculating Lag Times and Growth Rates')
+sims = set(DF_3b['sim'])
+codes = set(DF_3b['code'])
+lags = []
+rates = []
+# loop over codes
+for code in tqdm(codes, desc='Looping over Codes'):
+    # declare storage variables
+    t_lag = np.zeros(len(sims))
+    rate = np.zeros(len(sims))
+    DF = DF_3b.loc[DF_3b['code'] == code]
+    for i, sim in enumerate(tqdm(sims, desc='Looping over Sims')):
+        # extract data for this sim
+        data = DF.loc[DF['sim'] == sim]
+        t = data['time'].values
+        f = data['fitness'].values
+        # smooth with gaussian filter
+        gaussian_filter = gaussian(30, 10)
+        filtered_signal = convolve1d(f, gaussian_filter/gaussian_filter.sum())
+        # calculate first derivative
+        delt = np.diff(t)
+        t_avg = (t[1:]+t[:-1])/2
+        filt_grad = np.diff(filtered_signal)/delt
+        # find peaks
+        peak_ind = peakutils.indexes(filt_grad, thres=0.05, min_dist=int(30/delt.mean()))
+        # get timestamp for this point
+        t_lag[i] = t_avg[peak_ind[0]]
+        t_ind = int(peak_ind[0])
+        # get estimate for evolutionary rate
+        dt = t[-1]  - t[t_ind]
+        dx = f[-1] - f[t_ind]
+        rate[i] = dx/dt
+    # store arrays in list
+    lags.append(t_lag)
+    rates.append(rate)
+
+# collate data into a dataframe
+logging.info('Collating Data into Dataframe')
+dfs = []
+for (lag, rate, code) in zip(lags, rates, codes):
+    d = pd.DataFrame({
+        'lag' : lag,
+        'rate' : rate,
+        'code' : [code for i in range(len(lag))]
+    })
+    dfs.append(d)
+DF_3cd = pd.concat(dfs)
+# plot 3c and save
+logging.info("Plotting 3C: Lag Time Distributions")
+# plot violin plots for lag times
+ax = sns.violinplot(
+    x='lag',
+    y='code',
+    data=DF_3cd,
+    palette=colordict,
+    inner='box',
+    order=wanted_codes
+)
+plt.title('Distribution of Lag Times (N=1000)')
+plt.xlabel('Lag Time (in generations)')
+sns.despine(trim=True)
+# save output
+logging.info("Saving Figure 3C to S3")
+figure_basename = '3c_vector.svg'
+figure_path = '/home/ubuntu/' + figure_basename
+figure_s3path = s3_path + figure_basename
+plt.savefig(figure_path)
+with open(figure_path, 'rb') as data:
+    s3.upload_fileobj(data, bucketname, figure_s3path)
+success_string = (
+    "Success! Figure saved to {0}:{1}. ".format(bucketname, figure_s3path)
+    + "Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'".format(s3_region)
+    + " to see output figure file."
+)
+logging.info(success_string)
+
+# plot 3D and save
+logging.info("Plotting 3D: Evolutionary Rate Distributions")
+# plot violin plots for lag times
+ax = sns.violinplot(
+    x='rate',
+    y='code',
+    data=DF_3cd,
+    palette=colordict,
+    inner='box',
+    order=wanted_codes
+)
+plt.title('Distribution of Evolutionary Rates (N=1000)')
+plt.xlabel(r'Evolutionary Rates (in \frac{1}{gen^2})')
+sns.despine(trim=True)
+
+# save output
+logging.info("Saving Figure 3D to S3")
+figure_basename = '3d_vector.svg'
+figure_path = '/home/ubuntu/' + figure_basename
+figure_s3path = s3_path + figure_basename
+plt.savefig(figure_path)
+with open(figure_path, 'rb') as data:
+    s3.upload_fileobj(data, bucketname, figure_s3path)
+success_string = (
+    "Success! Figure saved to {0}:{1}. ".format(bucketname, figure_s3path)
+    + "Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'".format(s3_region)
+    + " to see output figure file."
+)
+logging.info(success_string)
+
+# plot 3E and save
+logging.info("Plotting 3E: Endpoint Fitness Distributions")
+# get endpoint fitness from simulations
+endpoints = {}
+for code in tqdm(codes, desc='Looping through codes'):
+    endpoints[code] = []
+    df = DF_3b.loc[DF_3b['code'] == code]
+    for sim in tqdm(sims, desc='Looping through sims'):
+        endpoints[code].append(df.loc[df['sim'] == sim,'fitness'].iloc[-1])
+DF_endtimes = pd.DataFrame.from_dict(endpoints)
+
+# plot distribution
+for code in codes:
+    sns.distplot(
+        DF_endtimes[code],
+        kde=True,
+        hist=True,
+        rug=False,
+        norm_hist=True,
+        color=colordict[code],
+        label=code,
+        rug_kws={"alpha" : 0.03}
+    )
+sns.despine(trim=True)
+plt.xlabel('Endpoint Fitness')
+plt.ylabel('Probability')
+plt.legend()
+plt.title('Distribution of Endpoint Fitnesses')
+# save output
+logging.info("Saving Figure 3E to S3")
+figure_basename = '3e_vector.svg'
 figure_path = '/home/ubuntu/' + figure_basename
 figure_s3path = s3_path + figure_basename
 plt.savefig(figure_path)
