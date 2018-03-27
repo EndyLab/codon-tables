@@ -82,6 +82,7 @@ colordict = {
     'Colorado' : 'red',
     'FF20' : 'green'
 }
+plt.figure()
 ax1 = sns.tsplot(
     data=DF_3b,
     time='time',
@@ -167,7 +168,8 @@ DF_3cd = pd.concat(dfs)
 # plot 3c and save
 logging.info("Plotting 3C: Lag Time Distributions")
 # plot violin plots for lag times
-ax = sns.violinplot(
+plt.figure()
+ax2 = sns.violinplot(
     x='lag',
     y='code',
     data=DF_3cd,
@@ -196,7 +198,8 @@ logging.info(success_string)
 # plot 3D and save
 logging.info("Plotting 3D: Evolutionary Rate Distributions")
 # plot violin plots for lag times
-ax = sns.violinplot(
+plt.figure()
+ax3 = sns.violinplot(
     x='rate',
     y='code',
     data=DF_3cd,
@@ -235,6 +238,7 @@ for code in tqdm(codes, desc='Looping through codes'):
 DF_endtimes = pd.DataFrame.from_dict(endpoints)
 
 # plot distribution
+plt.figure()
 for code in codes:
     sns.distplot(
         DF_endtimes[code],
