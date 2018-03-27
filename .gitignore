@@ -1,7 +1,7 @@
 params/
 data/
 aws.cred
-aws/config_*_replicates.py
+aws/config*_replicates.py
 ./__pycache__/
 ./notebooks/src/__pycache__/
 ./bctpy/bctpy-master/bct/__pycache__/
