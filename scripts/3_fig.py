@@ -83,9 +83,9 @@ logging.info("Plotting 3B: Mean Fitness Traces")
 colordict = {
     'Standard Code' : 'blue',
     'Colorado' : 'red',
-    'FF20' : 'green'
+    'FF20' : 'green',
     'FF16' : 'orange',
-    'Reductionist20' : 'purple'
+    'Reductionist20' : 'purple',
     'Reductionist15' : 'brown'
 }
 plt.figure()
@@ -125,14 +125,6 @@ logging.info(success_string)
 
 # move on to 3C:
 logging.info("Plotting 3C: Mean Fitness Traces")
-colordict = {
-    'Standard Code' : 'blue',
-    'Colorado' : 'red',
-    'FF20' : 'green',
-    'FF16' : 'orange',
-    'Reductionist20' : 'purple',
-    'Reductionist15' : 'brown'
-}
 plt.figure()
 ax1 = sns.tsplot(
     data=DF_3c,
