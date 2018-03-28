@@ -118,15 +118,15 @@ def framer(nFrame):
         ax = sns.distplot(data.loc[data['code'] == code]['fitness'], kde=True, hist=True, rug=False, norm_hist=True, color=colordict[code], label=code)
     plt.xlim([0,1.6])
     plt.yticks(visible=False)
-#     ax.yaxis.grid(False)
-    sns.despine(trim=True)
-    plt.xlabel('Fitness')
+    sns.despine(left=True)
+    ax.axes.get_yaxis().set_visible(False)
+    plt.xlabel('Mean Fitness')
     plt.ylabel('Probability')
     t = data['time'].iloc[0]
     t_before_decimal = int(t)
     t_after_decimal = t - t_before_decimal
     t_string = str(t_before_decimal) + str(t_after_decimal)[1:3]
-    plt.title('Distribution of Fitnesses (t={0})'.format(t_string))
+    plt.title('Distribution of Mean Fitnesses Across Replicates (t={0})'.format(t_string))
     plt.legend()
 
 
