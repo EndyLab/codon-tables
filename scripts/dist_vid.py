@@ -57,7 +57,7 @@ for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
     basepath = os.path.basename(s3_filename)
     local_filename = 'res/{0}'.format(basepath)
-    s3.download_file(bucketname, s3_filename, local_filename)
+    # s3.download_file(bucketname, s3_filename, local_filename)
     local_filenames.append(local_filename)
 logging.info("Download Successful!")
 
@@ -109,7 +109,7 @@ dpi = 100
 def framer(nFrame):
     plt.cla()
     # adjust frame with offset
-    framenum = int((nFrame + bumper)*skip)
+    framenum = int((nFrame + bumper)*skip - 1)
     # get current fitness from simulations
     data = DF_3b.loc[framenum]
 
