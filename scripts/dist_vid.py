@@ -109,7 +109,7 @@ dpi = 100
 def framer(nFrame):
     plt.cla()
     # adjust frame with offset
-    framenum = int((nFrame + bumper)*skip - 1)
+    framenum = int((nFrame*skip) + bumper - 1)
     # get current fitness from simulations
     data = DF_3b.loc[framenum]
 
