@@ -101,7 +101,7 @@ colordict = {
 
 # define video parameters
 fps = 30
-bumper = 0#30
+bumper = 30
 skip = 20
 frames = int( (len(DF_3b.loc[(DF_3b['code'] == 'FF20') & (DF_3b['sim'] == 1)]['time']) - bumper) / skip )
 dpi = 100
