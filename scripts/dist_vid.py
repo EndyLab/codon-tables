@@ -133,7 +133,7 @@ logging.info("Uploading Movie to S3")
 figure_basename = 'test_vid.gif'
 figure_path = '/home/ubuntu/' + figure_basename
 figure_s3path = s3_path + figure_basename
-anim.save(figure_path, writer='imagemagick', dpi=dip, fps=fps);
+anim.save(figure_path, writer='imagemagick', dpi=dpi, fps=fps);
 with open(figure_path, 'rb') as data:
     s3.upload_fileobj(data, bucketname, figure_s3path)
 success_string = (
