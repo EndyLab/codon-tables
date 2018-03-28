@@ -82,6 +82,10 @@ DF_3b = DF.loc[DF['code'].map(f)]
 ##############################################
 
 logging.info("Creating Movie")
+###############################################
+# Sup Video: Distribution Evolving Over Time #
+##############################################
+
 # First set up the figure, the axis, and the plot element we want to animate
 fig = plt.figure()
 ax = plt.axes(xlim=(0, 1.6))
@@ -97,43 +101,44 @@ colordict = {
 
 # define video parameters
 fps = 30
-bumper = 30
-# frames = len(DF_3b.loc[(DF_3b['code'] == 'FF20') & (DF_3b['sim'] == 1)]['time']) - bumper
-frames = 100
+bumper = 0#30
+skip = 20
+frames = int( (len(DF_3b.loc[(DF_3b['code'] == 'FF20') & (DF_3b['sim'] == 1)]['time']) - bumper) / skip )
 dpi = 100
 
-# define frame generating function
 def framer(nFrame):
     plt.cla()
+    # adjust frame with offset
+    framenum = int((nFrame + bumper)*skip)
     # get current fitness from simulations
-    fitnesses = {}
-    for code in codes:
-        df = DF_3b.loc[DF_3b['code'] == code].set_index('sim')
-        fitnesses[code] = [df.loc[i, 'fitness'].iloc[nFrame-bumper] for i in sims]
-        t = df.loc[0, 'time'].iloc[nFrame-bumper]
-    DF_times = pd.DataFrame.from_dict(fitnesses)
+    data = DF_3b.loc[framenum]
 
     # plot distribution
     for code in codes:
-        ax = sns.distplot(DF_times[code], kde=True, hist=True, rug=False, norm_hist=True, color=colordict[code], label=code)
+        ax = sns.distplot(data.loc[data['code'] == code]['fitness'], kde=True, hist=True, rug=False, norm_hist=True, color=colordict[code], label=code)
     plt.xlim([0,1.6])
-#     plt.yticks(visible=False)
+    plt.yticks(visible=False)
 #     ax.yaxis.grid(False)
     sns.despine(trim=True)
     plt.xlabel('Fitness')
     plt.ylabel('Probability')
+    t = data['time'].iloc[0]
     t_before_decimal = int(t)
     t_after_decimal = t - t_before_decimal
     t_string = str(t_before_decimal) + str(t_after_decimal)[1:3]
     plt.title('Distribution of Fitnesses (t={0})'.format(t_string))
     plt.legend()
 
+
 anim = animation.FuncAnimation(fig, framer, frames=frames)
-logging.info("Uploading Movie to S3")
 figure_basename = 'test_vid.gif'
 figure_path = '/home/ubuntu/' + figure_basename
 figure_s3path = s3_path + figure_basename
 anim.save(figure_path, writer='imagemagick', dpi=dpi, fps=fps);
+fig = plt.figure()
+ax = plt.axes(xlim=(0, 1.6))
+
+logging.info("Uploading Movie to S3")
 with open(figure_path, 'rb') as data:
     s3.upload_fileobj(data, bucketname, figure_s3path)
 success_string = (
