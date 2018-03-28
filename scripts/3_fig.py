@@ -130,7 +130,7 @@ colordict = {
     'Colorado' : 'red',
     'FF20' : 'green',
     'FF16' : 'orange',
-    'Reductionist20' : 'purple'
+    'Reductionist20' : 'purple',
     'Reductionist15' : 'brown'
 }
 plt.figure()
