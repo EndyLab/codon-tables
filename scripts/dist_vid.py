@@ -100,6 +100,7 @@ fps = 30
 bumper = 30
 # frames = len(DF_3b.loc[(DF_3b['code'] == 'FF20') & (DF_3b['sim'] == 1)]['time']) - bumper
 frames = 100
+dpi = 100
 
 # define frame generating function
 def framer(nFrame):
@@ -132,7 +133,7 @@ logging.info("Uploading Movie to S3")
 figure_basename = 'test_vid.gif'
 figure_path = '/home/ubuntu/' + figure_basename
 figure_s3path = s3_path + figure_basename
-anim.save(figure_path, fps=fps);
+anim.save(figure_path, writer='imagemagick', dpi=dip, fps=fps);
 with open(figure_path, 'rb') as data:
     s3.upload_fileobj(data, bucketname, figure_s3path)
 success_string = (
