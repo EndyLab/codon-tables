@@ -42,18 +42,13 @@ class utils:
     # define class properties #
     ###########################
 
+    from res
+
     # define standard table
     standardTable = Bio.Data.CodonTable.standard_rna_table.forward_table
     standardTable['UAA'] = '*'
     standardTable['UAG'] = '*'
     standardTable['UGA'] = '*'
-    # unpickle additional class properties
-    with open(path+'/res/utilsDefinitions.pickle', 'rb') as handle:
-        unPickled = pickle.load(handle)
-    [dNTPs, rNTPs, residues, tripletCodons, tripletMutPairs,
-     PRS, kdHydrophobicity, Gilis, SCV,
-     unrestrictedBlock, standardBlock, naturalBlock,
-    coloradoTable] = unPickled
 
     @staticmethod
     def getAAcounts(table):
@@ -192,7 +187,7 @@ class utils:
             # get next codon to search
             c, newlevel = codonDeque.pop()
             # append results to neighbors list
-            neighbors = utils.__connectRecurse(c, newlevel + 1, table, 
+            neighbors = utils.__connectRecurse(c, newlevel + 1, table,
                                                neighbors, codonDeque, cache)
         # return resulting list
         return neighbors
@@ -460,7 +455,7 @@ class utils:
         totalMut = len(utils.tripletMutPairs)
         # get Kyte-Doolittle hydropathy metric
         kd = utils.kdHydrophobicity
-        # loop over mutation pairs 
+        # loop over mutation pairs
         for (c1, c2) in utils.tripletMutPairs:
             # increment counter and metric if nonsynonymous
             if not (table[c1] == table[c2]):
