@@ -46,15 +46,20 @@ class thunderflask():
             'fitnesses' : [],
         }
         self.poptrace = {}
+        self.popfrac = {}
         # partition initial strain list appropriately
-        self.strainShuffle(T_curr=0, f_avg=0, save_dead=False, save_established=True, 
+        self.strainShuffle(T_curr=0, f_avg=0, save_dead=False, save_established=True,
                            prune_strains=False)
         # populate poptrace key/value pairs
         for bact in strains:
             self.poptrace[bact.ID] = ([], [])
 
+        # initialize population fraction dictionary
+        codes = set([bact.code for bact in strains])
+        for code in codes: self.popfrac[code] = []
+
     def simulate(self, T=500, dt=1, T_0=0, mut_param=[1,2], twiddle=3,
-            save_established=False, save_dead=False, save_all=False, 
+            save_established=False, save_dead=False, save_all=False,
             prune_strains=True, show_progress=True):
         '''
         Main method of thunderflask class. Used to run genetic diversity
@@ -125,11 +130,11 @@ class thunderflask():
                                       prune_strains=prune_strains)
         return
 
-    def iterate(self, T_curr, dt, mut_param, twiddle, 
+    def iterate(self, T_curr, dt, mut_param, twiddle,
                 save_established, save_dead, save_all, prune_strains):
         '''
         Method used to perform one iteration of the simulation. This allows
-        simulate() to optionally give tqdm progress bar. 
+        simulate() to optionally give tqdm progress bar.
 
         Parameters
         ----------
@@ -165,8 +170,8 @@ class thunderflask():
         # run mutation simulation
         self.mutationSim(T_curr=T_next, dt=dt, mut_param=mut_param, save_all=save_all)
         # shuffle strains
-        self.strainShuffle(T_curr=T_next, f_avg=f_avg, twiddle=twiddle, 
-                           save_established=save_established, save_dead=save_dead, 
+        self.strainShuffle(T_curr=T_next, f_avg=f_avg, twiddle=twiddle,
+                           save_established=save_established, save_dead=save_dead,
                            prune_strains=prune_strains)
         # update current time
         T_curr = T_next
@@ -291,7 +296,7 @@ class thunderflask():
         return
 
     def strainShuffle(self, T_curr, f_avg, save_established, save_dead, prune_strains,
-                      twiddle=3,min_threshold=1e2, max_threshold=1e4): 
+                      twiddle=3,min_threshold=1e2, max_threshold=1e4):
         ''' A method used to handle exchanging strains between small and large
         population groups. Has one 'magic number' parameter to allow the user
         to alter the establishment threshold. Enforces a minimum threshold for
@@ -464,10 +469,19 @@ class thunderflask():
         # update f_avgtrace
         self.f_avgtrace['timepoints'].append(T_curr)
         self.f_avgtrace['f_avg'].append(f_avg)
-        # update poptrace
+        # update poptrace and calculate population fractions
+        N_tot = 0
+        n_code = {}; for code in self.popfrac.keys(): n_code[code] = 0
         for bact in self.smallStrains + self.bigStrains:
+            # update poptrace
             self.poptrace[bact.ID][0].append(T_curr)
             self.poptrace[bact.ID][1].append(bact.N_pop)
+            # update N_tot and n_code counters
+            N_tot += bact.N_pop
+            n_code[bact.code] = bact.N_pop
+        # update popfrac
+        for code, fractrace in self.popfrac:
+            fractrace.append(n_code[code]/N_tot)
         # # update f_trace
         # self.f_trace['timepoints'].append(T_curr)
         # self.f_trace['fitnesses'].append(fs)
@@ -650,8 +664,10 @@ class thunderflask():
         # loop through mutation strengths
         for df in dfs:
             # generate a new strain
-            mutant = strain(N_pop=1, table=bacteria.table,
-                t_0=T_curr, fitness=f+df, lineage=lineage)
+            mutant = strain(
+                N_pop=1, code=bacteria.code, table=bacteria.table,
+                t_0=T_curr, fitness=f+df, lineage=lineage
+            )
             # package resulting strain back into simulation
             self.smallStrains.append(mutant)
             if save_all:
@@ -661,4 +677,3 @@ class thunderflask():
 
         # return from method
         return
-

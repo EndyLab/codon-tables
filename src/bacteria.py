@@ -7,12 +7,13 @@ from src.codonTable import codonTable
 
 class strain():
     '''A class used to represent a bacterial strain in culture'''
-    def __init__(self, N_pop=100, fitness=0, mu=2e-5, t_0=0,
+    def __init__(self, code=None, N_pop=100, fitness=0, mu=2e-5, t_0=0,
         t_est=0, table=None, ID=None, lineage=[]):
         '''The init function for the strain class.
 
         Parameters
         ----------
+        - str code: a human readable version of the genetic code used by strain
         - int/float N_pop: current population size of strain
         - float fitness: the absolute fitness of an individual strain
         - float mu: mutation rate of bacterial strain (1/genome-gen) assuming
@@ -30,6 +31,7 @@ class strain():
         '''
         # generate values for optional parameters
         if table == None:
+            code = 'Standard Code'
             table = codonTable(utils.standardTable)
         elif type(table) == dict:
             table = codonTable(table=table)
@@ -39,6 +41,7 @@ class strain():
         # update lineage to include own ID
         lineage.append(ID)
         # store parameters in class attributes
+        self.code = code
         self.N_pop = N_pop
         self.fitness = fitness
         self.t_0 = t_0
