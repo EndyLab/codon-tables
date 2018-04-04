@@ -498,6 +498,8 @@ class utils:
         # loop over codons to reassign
         # import ipdb; ipdb.set_trace()
         for codon, AA in table.items():
+            # skip assignments to STOP
+            if AA == '*': continue
             # get codons that would be decoded in reality
             wobble = utils.wobbleWC[utils.basepairWC[codon[-1]]]
             codons = [codon[:2]+nt3 for nt3 in wobble]
