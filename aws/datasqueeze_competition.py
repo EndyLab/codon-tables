@@ -11,7 +11,7 @@ import pandas as pd
 import boto3
 
 # import environmental variables from .config_replicates.py
-from config_replicates import *
+from config_competition import *
 
 # define local small output file path
 s3_path = S3_HOME_DIR + 'output/'
