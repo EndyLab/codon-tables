@@ -35,14 +35,14 @@ for params in paramDicts:
 logging.info("Saving Parameter Files Locally to {0}".format(pickle_path))
 paramPickler(paramDicts, pickle_path)
 
-# # upload files to s3
-# logging.info("Uploading Parameter Directory {0} to {1}:{2}".format(
-#     pickle_path, BUCKETNAME, S3_UPLOAD_DIR
-#     )
-# )
-# paramUpload(pickle_path, BUCKETNAME, s3_upload_path, S3_REGION)
-# success_string = (
-#     "Success! Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'"
-#     + " to see parameter files."
-# ).format(S3_REGION)
-# logging.info(success_string)
+# upload files to s3
+logging.info("Uploading Parameter Directory {0} to {1}:{2}".format(
+    pickle_path, BUCKETNAME, S3_UPLOAD_DIR
+    )
+)
+paramUpload(pickle_path, BUCKETNAME, s3_upload_path, S3_REGION)
+success_string = (
+    "Success! Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'"
+    + " to see parameter files."
+).format(S3_REGION)
+logging.info(success_string)
