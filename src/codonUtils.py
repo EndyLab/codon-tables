@@ -53,7 +53,7 @@ class utils:
     [dNTPs, rNTPs, residues, tripletCodons, tripletMutPairs,
      PRS, kdHydrophobicity, Gilis, SCV,
      unrestrictedBlock, standardBlock, naturalBlock,
-    coloradoTable] = unPickled
+     basepairWC, wobbleWC, coloradoTable] = unPickled
 
     @staticmethod
     def getAAcounts(table):
@@ -192,7 +192,7 @@ class utils:
             # get next codon to search
             c, newlevel = codonDeque.pop()
             # append results to neighbors list
-            neighbors = utils.__connectRecurse(c, newlevel + 1, table, 
+            neighbors = utils.__connectRecurse(c, newlevel + 1, table,
                                                neighbors, codonDeque, cache)
         # return resulting list
         return neighbors
@@ -460,7 +460,7 @@ class utils:
         totalMut = len(utils.tripletMutPairs)
         # get Kyte-Doolittle hydropathy metric
         kd = utils.kdHydrophobicity
-        # loop over mutation pairs 
+        # loop over mutation pairs
         for (c1, c2) in utils.tripletMutPairs:
             # increment counter and metric if nonsynonymous
             if not (table[c1] == table[c2]):
@@ -478,8 +478,59 @@ class utils:
             mutability = metric / nonsynMut
         return mutability
 
+    @staticmethod
+    def promiscuity(table, allow_ambiguous=False):
+        '''A static method used to generate the genetic code resulting from considering tRNA promiscuity. Uses Crick Wobble Hypothesis. Raises an exception if the table generated is ambiguous (more than one signal acceptable for a given codon)
+
+        Parameters
+        ----------
+        - dict table: the codon table to promsicuitize
+        - bool allow_ambiguous: flag telling code whether to accept ambiguity
+
+        Returns
+        -------
+        dict promsicuous: the resulting table when considering tRNA promiscuity
+        '''
+        # declare table to return
+        promiscuous = {}
+        for codon in utils.tripletCodons:
+            promiscuous[codon] = '*'
+        # loop over codons to reassign
+        # import ipdb; ipdb.set_trace()
+        for codon, AA in table.items():
+            # skip assignments to STOP
+            if AA == '*': continue
+            # get codons that would be decoded in reality
+            wobble = utils.wobbleWC[utils.basepairWC[codon[-1]]]
+            codons = [codon[:2]+nt3 for nt3 in wobble]
+            # determine if there is ambiguity
+            acceptable = [AA, '*']
+            for c in codons:
+                if promiscuous[c] not in acceptable:
+                    # raise error if allow_ambiguous = False
+                    if not allow_ambiguous:
+                        raise ValueError('input code generates ambiguous code upon promiscuization')
+                    else:
+                        # else, package all nonstop codons as tuple
+                        AAs = tuple(
+                            [aa for aa in promiscuous[c] if aa != '*'] +
+                            [AA]
+                        )
+                        promiscuous[c] = AAs
+                # otherwise, package as simple str --> str mapping
+                else:
+                    promiscuous[c] = AA
+        return promiscuous
+
+
 if __name__ == '__main__':
-    table = utils.randomTable()
+    table = {
+        'UUU' : 'F',
+        'UCA' : 'S',
+        'UCG' : 'L',
+        'AUG' : 'M',
+    }
+    newtable = utils.promiscuity(table, allow_ambiguous=True)
     from codonTable import codonTable
-    test = codonTable(table)
-    test.plotGraph()
+    newTable = codonTable(newtable)
+    newTable.codonDict
