@@ -709,7 +709,7 @@ class thunderflask():
         '''
         # immediately declare continuation if competition == false
         if competition == False:
-            decision = True
+            decision = False
         # otherwise, check continuation condition
         else:
             # loop through popfractions to see if any one code dominates
