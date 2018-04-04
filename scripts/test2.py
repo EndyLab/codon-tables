@@ -1,41 +1,44 @@
 import numpy as np
+from scipy.interpolate import interp1d as interp
 import matplotlib.pyplot as plt
+from src.codonTable import codonTable
+from src.codonUtils import utils
 from src.thunderflask import thunderflask
 from src.bacteria import strain
-from tqdm import tqdm
 from src.ffgen import ffgen
-from src.codonTable import codonTable
-from src.bacteria import strain
 
-# populate sim with a fast fail organism
-table = ffgen.triplet()
-LUCA = strain(N_pop=1e6, table=table, fitness=0, mu=2e-5)
-sim = thunderflask(LUCA)
+# populate sim with two strains
+fftable = ffgen.triplet()
+failer = strain(N_pop=0.5*1e6, table=fftable, code='FF20', fitness=0, mu=2e-5)
+WT = strain(N_pop=0.5*1e6, fitness=0, mu=2e-5)
+strains = [failer, WT]
+sim = thunderflask(strains=strains)
 # initialize some variables
 T_curr = 0
-mut_param = [2, 3.5]
-dt = 1
-
+mut_param = [1, 2]
+dt = 0.1
 # run simulation
-sim.simulate(1000, dt, T_curr, mut_param)
-t = np.array(sim.f_trace['timepoints'])
-f = np.array(sim.f_trace['fitnesses'])
-fig, axarr = plt.subplots(2, sharex=True)
-axarr[0].plot(t, f)
-axarr[0].set_title('Fast Fail Code: Mean Fitness vs Time')
-dt = np.diff(t)
-t_avg = (t[1:]+t[:-1])/2
-gradf = np.diff(f)/dt
-axarr[1].plot(t_avg, gradf)
-axarr[1].set_title(r'Fast Fail Code: $\frac{df}{dt}$ vs Time')
+sim.simulate(T=1000, dt=dt, mut_param=mut_param, save_all=True, competition=True)
+t = np.array(sim.f_avgtrace['timepoints'])
+x1 = np.array(sim.popfrac['Standard Code'])
+x2 = np.array(sim.popfrac['FF20'])
+plt.plot(t, x1, label='Standard Code')
+plt.plot(t, x2, label='FF20')
+plt.title('Fast Fail Code: Mean Fitness vs Time')
 plt.xlabel('Time (in generations)')
-plt.ylabel('Fitness (%)')
+plt.ylabel('Population Fraction')
+plt.legend()
 plt.show()
 
-for i, bact in enumerate(sim.estStrains):
-    # if i % 10 == 0:
-    t = bact.timepoints
-    pop = bact.poptrace
-    plt.semilogy(t, pop)
-plt.title('Fast Fail Code: Population Traces for Established Strains')
+sim.f_avgtrace['timepoints'].append(1000)
+alt_t = np.array(sim.f_avgtrace['timepoints'])
+sim.popfrac['FF20'].append(0)
+alt_x2 = np.array(sim.popfrac['FF20'])
+fxn = interp(alt_t, alt_x2)
+newt = np.linspace(0, 1000, int(1000/dt) + 1)
+newx2 = fxn(newt)
+
+plt.plot(t, x2, label='FF20')
+plt.plot(newt, newx2, label='interpolated')
+plt.legend()
 plt.show()

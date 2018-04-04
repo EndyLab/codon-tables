@@ -1,5 +1,6 @@
 #import dependencies
 import numpy as np
+from copy import deepcopy as copy
 from scipy.stats import halfgennorm, binom
 import matplotlib.pyplot as plt
 import random
@@ -60,7 +61,8 @@ class thunderflask():
 
     def simulate(self, T=500, dt=1, T_0=0, mut_param=[1,2], twiddle=3,
             save_established=False, save_dead=False, save_all=False,
-            prune_strains=True, show_progress=True):
+            prune_strains=True, show_progress=True,
+            competition=False):
         '''
         Main method of thunderflask class. Used to run genetic diversity
         simulation. There are four main modules in this simulation:
@@ -97,6 +99,8 @@ class thunderflask():
         - bool save_all: tells simulation whether or not to to save all species
         - bool prune_strains: tells the simulation whether or not to prune
             small strains below mean fitness
+        - bool competition: tells simulation to prematurely terminate if
+            population fraction becomes 1 for any given genetic code
 
         Returns
         -------
@@ -121,6 +125,10 @@ class thunderflask():
                                       save_established=save_established,
                                       save_dead=save_dead, save_all=save_all,
                                       prune_strains=prune_strains)
+                # break if popfraction is met
+                if self.__checkDomination(competition):
+                    print('Population Sweep at time t={0}'.format(T_curr))
+                    break
         else:
             while T_curr < T:
                 T_curr = self.iterate(T_curr=T_curr, dt=dt,
@@ -128,6 +136,10 @@ class thunderflask():
                                       save_established=save_established,
                                       save_dead=save_dead, save_all=save_all,
                                       prune_strains=prune_strains)
+                # break if popfraction is met
+                if self.__checkDomination(competition):
+                    print('Population Sweep at time t={0}'.format(T_curr))
+                    break
         return
 
     def iterate(self, T_curr, dt, mut_param, twiddle,
@@ -471,16 +483,17 @@ class thunderflask():
         self.f_avgtrace['f_avg'].append(f_avg)
         # update poptrace and calculate population fractions
         N_tot = 0
-        n_code = {}; for code in self.popfrac.keys(): n_code[code] = 0
+        n_code = {};
+        for code in self.popfrac.keys(): n_code[code] = 0
         for bact in self.smallStrains + self.bigStrains:
             # update poptrace
             self.poptrace[bact.ID][0].append(T_curr)
             self.poptrace[bact.ID][1].append(bact.N_pop)
             # update N_tot and n_code counters
             N_tot += bact.N_pop
-            n_code[bact.code] = bact.N_pop
+            n_code[bact.code] += bact.N_pop
         # update popfrac
-        for code, fractrace in self.popfrac:
+        for code, fractrace in self.popfrac.items():
             fractrace.append(n_code[code]/N_tot)
         # # update f_trace
         # self.f_trace['timepoints'].append(T_curr)
@@ -658,15 +671,17 @@ class thunderflask():
         -------
         None
         '''
-        # extract cell lineage and fitness from ancestor strain
+        # extract cell characteristics from ancestor strain
         lineage = bacteria.lineage
         f = bacteria.fitness
+        code = bacteria.code
+        table = bacteria.table
         # loop through mutation strengths
         for df in dfs:
             # generate a new strain
             mutant = strain(
-                N_pop=1, code=bacteria.code, table=bacteria.table,
-                t_0=T_curr, fitness=f+df, lineage=lineage
+                N_pop=1, code=code, table=table,
+                t_0=T_curr, fitness=f+df, lineage=copy(lineage)
             )
             # package resulting strain back into simulation
             self.smallStrains.append(mutant)
@@ -677,3 +692,26 @@ class thunderflask():
 
         # return from method
         return
+
+    def __checkDomination(self, competition):
+        '''A private method used to check whether or not one genetic code has
+        swept a population. Returns a boolean telling self.simulate whether or
+        not to terminate
+
+        Parameters
+        ----------
+        bool competition: tells simulation to prematurely terminate if
+            population fraction becomes 1 for any given genetic code
+
+        Returns
+        -------
+        bool decision: continuation condition for simulation
+        '''
+        # immediately declare continuation if competition == false
+        if competition == False:
+            decision = True
+        # otherwise, check continuation condition
+        else:
+            # loop through popfractions to see if any one code dominates
+            decision = 1 in [popfrac[-1] for popfrac in self.popfrac.values()]
+        return decision
