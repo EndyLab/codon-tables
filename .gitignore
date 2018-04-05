@@ -3,6 +3,7 @@ data/
 aws.cred
 aws/config*_replicates.py
 aws/config*_competition.py
+aws/config*_contour.py
 ./__pycache__/
 ./notebooks/src/__pycache__/
 ./bctpy/bctpy-master/bct/__pycache__/

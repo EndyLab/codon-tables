@@ -34,7 +34,7 @@ def genParamDict(sim_num, batch_num, strains, N_pop, T_0, T_sim, dt, t_extra,
     '''
     return locals()
 
-def batcher(params, num_cores):
+def batcher(params, num_cores, offset=0):
     ''' A function used to generate a batch of simulation parameter
     dictionaries in order to parallelize computation on AWS
 
@@ -42,6 +42,7 @@ def batcher(params, num_cores):
     ----------
     - dict params: one dictionary of params to generate copies of
     - num_cores: the number of cores available in the cluster
+    - int offset: offset for batch_num; used exclusively w/ contourBatcher
 
     Returns
     -------
@@ -58,7 +59,7 @@ def batcher(params, num_cores):
             # perform one replicate per core
             paramCopy = copy(params)
             paramCopy['N_sims'] = 1
-            paramCopy['batch_num'] = batch_num
+            paramCopy['batch_num'] = batch_num + offset
             paramDicts.append(paramCopy)
     # handle case where num_cores < N_sims
     else:
@@ -70,8 +71,44 @@ def batcher(params, num_cores):
             # package adjusted parameters
             paramCopy = copy(params)
             paramCopy['N_sims'] = n_sim
-            paramCopy['batch_num'] = batch_num
+            paramCopy['batch_num'] = batch_num + offset
             paramDicts.append(paramCopy)
+
+    return paramDicts
+
+def contourBatcher(params, num_cores, init_pops):
+    ''' A function used to generate a batch of simulation parameter
+    dictionaries in order to parallelize computation on AWS. Used for head to
+    head genetic code competition assays for generating contour plots of
+    containment probability.
+
+    Parameters
+    ----------
+    - dict params: one dictionary of params to generate copies of
+    - num_cores: the number of cores available in the cluster
+    - np.array init_pops: an array of initial population sizes for intruder code
+
+    Returns
+    -------
+    list<dict> paramDicts: a list of parameter dictionaries
+    '''
+    # initialize list of parameter dictionaries and batch_num counter
+    paramDicts = []
+    offset = 0
+    # throw error if more initial conditions given than cores available
+    if (num_cores < len(init_pops)):
+        raise ValueError('Not enough cores allocated')
+    # calculate number of cores per initial condition and declare N_sims
+    n_cores = int(num_cores/len(init_pops))
+    N_sims = params['N_sims']
+    # generate list of parameter dictionaries for each initial condition
+    for N_0 in init_pops:
+        paramCopy = copy(params)
+        paramCopy['N_0'] = N_0
+        # append parameter dictionaries to list
+        paramDicts += batcher(paramCopy, n_cores, offset)
+        # update offset
+        offset += min(n_cores, N_sims)
 
     return paramDicts
 
