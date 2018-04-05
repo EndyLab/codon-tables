@@ -82,10 +82,6 @@ DF_3b = DF.loc[DF['code'].map(f)]
 ##############################################
 
 logging.info("Creating Movie")
-###############################################
-# Sup Video: Distribution Evolving Over Time #
-##############################################
-
 # First set up the figure, the axis, and the plot element we want to animate
 fig = plt.figure()
 ax = plt.axes(xlim=(0, 1.6))
