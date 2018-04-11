@@ -50,7 +50,7 @@ filenames = [
 ]
 # download files locally
 logging.info("Writing Batch Output Files Locally")
-pbar = tqdm(filenames[1:7])
+pbar = tqdm(filenames)
 local_filenames = []
 for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
@@ -85,8 +85,8 @@ colordict = {
     'Colorado' : 'red',
     'FF20' : 'green',
     'FF16' : 'orange',
-    'Reductionist20' : 'purple',
-    'Reductionist15' : 'brown'
+    'RED20' : 'purple',
+    'RED14' : 'brown'
 }
 plt.figure()
 ax1 = sns.tsplot(
