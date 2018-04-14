@@ -155,7 +155,6 @@ ax3 = sns.tsplot(
     ci='sd',
     linestyle='-'
 )
-plt.figure()
 # format plot
 logging.info("Formatting 5B Main")
 sns.despine()
