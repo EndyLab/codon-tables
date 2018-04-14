@@ -85,7 +85,7 @@ DF = pd.concat(dfs, copy=False)
 dashcodes = ['PROMISC20', 'PROMISC14']
 f = lambda code: code not in dashcodes
 
-logging.info("Plotting 4b-1: solid line traces")
+logging.info("Plotting 5b-1: solid line traces")
 colordict = {
     'Standard Code' : 'blue',
     'Colorado' : 'red',
@@ -107,7 +107,7 @@ ax1 = sns.tsplot(
     ci='sd',
     linestyle='-'
 )
-logging.info("Plotting 5b-1: solid line traces")
+logging.info("Plotting 5b-2: dashed line traces")
 ax2 = sns.tsplot(
     data=DF.loc[(DF['code'].map(lambda code: not f(code)))],
     time='time',
