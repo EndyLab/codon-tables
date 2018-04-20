@@ -33,6 +33,15 @@ sns.set_context("paper")
 sns.set_style('white')
 sns.set_style('ticks')
 
+labelsize=16
+width = 4
+height = width / 1.618
+
+plt.rc('font', family='serif')
+plt.rc('xtick', labelsize=labelsize)
+plt.rc('ytick', labelsize=labelsize)
+plt.rc('axes', labelsize=labelsize)
+
 # set variables
 bucketname = 'endylab-codon-table-simulations'
 s3_path = 'manuscript/fig3b/'
@@ -104,7 +113,7 @@ sns.despine()
 plt.xlim([0, 1000])
 plt.ylim([0, 1.3])
 plt.legend()
-plt.title('Mean Fitness vs Time (1000 Simulations)')
+plt.title('Hyper-evolvable', fontsize=labelsize)
 plt.xlabel('Time (in generations)')
 plt.ylabel('Mean Fitness')
 
@@ -140,14 +149,16 @@ logging.info("Formatting 3C")
 sns.despine()
 plt.xlim([0, 1000])
 # plt.ylim([0, 1.3])
+plt.xticks([0, 500, 1000])
+plt.yticks([0, 0.15, 0.3])
 plt.legend()
-plt.title('Mean Fitness vs Time (1000 Simulations)')
+plt.title('Hypo-evolvable', fontsize=labelsize)
 plt.xlabel('Time (in generations)')
 plt.ylabel('Mean Fitness')
 
 # save output
 logging.info("Saving Figure 3C and inset to S3")
-figure_basename = '3c_vector.svg'
+figure_basename = '3c_inset_vector.svg'
 figure_path = '/home/ubuntu/' + figure_basename
 figure_s3path = s3_path + figure_basename
 plt.savefig(figure_path)
@@ -169,7 +180,9 @@ ax1 = sns.tsplot(
     color=colordict,
     ci='sd'
 )
-figure_basename = '3c_inset_vector.svg'
+plt.xticks([0, 200, 400, 600, 800, 1000])
+plt.yticks([0, 0.2, 0.4, 0.6, 0.8, 1])
+figure_basename = '3c_vector.svg'
 figure_path = '/home/ubuntu/' + figure_basename
 figure_s3path = s3_path + figure_basename
 plt.savefig(figure_path)
