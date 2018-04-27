@@ -179,43 +179,55 @@ class codonTable:
         # return arrays
         return xs, ys, zs, vals, stops
 
-    def dictToTable(self, table=None):
+    def dictToTable(self, table=None, codon_suffix=''):
         '''A method used to convert a dict representing a codon table to a
         pandas DataFrame representing the same table in a human readable form
 
         Paramters
         ---------
-        dict table=None: python dict representing a codon table
+        - dict table=None: python dict representing a codon table
+        - str codon_suffix: string to append to each codon (used for quadruplet
+            tables and higher)
 
         Returns
         -------
         pd.DataFrame df: pandas DataFrame representing a codon table in a more
             traditional format
         '''
-        # get list of rNTPs and declare list of dataframes
-        NTP = utils.rNTPs
-        dfs = []
         # handle default options for table
         if table == None:
             table = self.codonDict
-        # for each first position, define new dict to become a dataframe
-        for c1 in NTP:
-            dfDict = {}
-            # for each second position, generate a new list of codon/AA pairs
-            for c2 in NTP:
-                row = []
-                # for each third position, populate row list
-                for c3 in NTP:
-                    codon = c1+c2+c3
-                    '''NOTE: this is where things get funky'''
-                    row.append(codon + ' : ' + table[codon])
-                # add row to dict under label of second position
-                dfDict[c2] = row
-            # create new data frame and add to list of data frames
-            df = pd.DataFrame(dfDict, index=NTP)
-            dfs.append(df[NTP])
-        # return the concatenation of the resulting dataframes
-        return pd.concat(dfs, keys=NTP)
+        # get list of rNTPs
+        NTP = utils.rNTPs
+        # recurse if quadruplet code or higher dimmensional
+        if len(list(table)[0]) > 3:
+            # get subtables and appropriate suffixes
+            suffixes = set()
+            dfs = []
+            for codon, AA in table.items():
+                pass
+        else:
+            # declare list of dataframes
+            dfs = []
+            # for each first position, define new dict to become a dataframe
+            for c1 in NTP:
+                dfDict = {}
+                # for each second position, generate a new list of codon/AA pairs
+                for c2 in NTP:
+                    row = []
+                    # for each third position, populate row list
+                    for c3 in NTP:
+                        codon = c1+c2+c3
+                        '''NOTE: this is where things get funky'''
+                        row.append(codon + ' : ' + table[codon])
+                    # add row to dict under label of second position
+                    dfDict[c2] = row
+                # create new data frame and add to list of data frames
+                df = pd.DataFrame(dfDict, index=NTP)
+                dfs.append(df[NTP])
+                # get the concatenation of the resulting dataframes
+                DF = pd.concat(dfs, keys=NTP, copy=False)
+        return DF
 
     def dictToGraph(self, table=None, norm=True):
         ''' Takes a dictionary representing a codon table as an input and
