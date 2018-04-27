@@ -29,6 +29,10 @@ class utils:
         codons
     - set tuples(str) tripletMutPairs: a set of tuples of string representing
         pairs of triplet rNTP codons one mutation away
+    - list(str) quadrupletCodons: a list of string representing the set of rNTP
+        codons
+    - set tuples(str) quadrupletMutPairs: a set of tuples of string representing
+        pairs of quadruplet rNTP codons one mutation away
     - dict PRS: a dict representing the Polar Requirement Scale
     - dict kdHydrophobicity: a dict representing Kyte Doolittle hydrophobicity
     - dict unrestrictedBlock: a dict representing a completely unfettered block
@@ -51,6 +55,7 @@ class utils:
     with open(path+'/res/utilsDefinitions.pickle', 'rb') as handle:
         unPickled = pickle.load(handle)
     [dNTPs, rNTPs, residues, tripletCodons, tripletMutPairs,
+     quadrupletCodons, quadrupletMutPairs,
      PRS, kdHydrophobicity, Gilis, SCV,
      unrestrictedBlock, standardBlock, naturalBlock,
      basepairWC, wobbleWC, coloradoTable] = unPickled
@@ -429,9 +434,10 @@ class utils:
         '''
         # initialize counter and get number of possible mutation pairs
         synMut = 0
-        totalMut = len(utils.tripletMutPairs)
+        totalMut = utils.mutPairNum(table)
         # loop over mutation pairs and increment for synonymous mutations
         for (c1, c2) in utils.tripletMutPairs:
+            allcount +=1
             if(table[c1] == table[c2]):
                 synMut += 1
         # return fraction of synonymous mutations
@@ -457,7 +463,7 @@ class utils:
         # mutation pairs
         nonsynMut = 0
         metric = 0
-        totalMut = len(utils.tripletMutPairs)
+        totalMut = utils.mutPairNum(table)
         # get Kyte-Doolittle hydropathy metric
         kd = utils.kdHydrophobicity
         # loop over mutation pairs
@@ -522,6 +528,38 @@ class utils:
                     promiscuous[c] = AA
         return promiscuous
 
+    @staticmethod
+    def mutPairNum(table):
+        '''
+        A static method that calculates the number of pairs of codons one
+        mutation away from each other. Treats mutations with directionality. In
+        general, the number of mutational pairs is equal to the number of
+        codons in a table multiplied by the number of unique codons within one
+        mutation. Let a = alphabet length (generally 4), l = codon length
+        (generally 3)
+
+                n = (a^l) * l(a-1)
+
+        Parameters
+        ----------
+        dict table: the codon table to analyze
+
+        Returns
+        -------
+        int mut_num: the number of distinct mutational pairs.
+        '''
+        # get list of all codons in table
+        codon_list = list(table)
+        # get alphabet size
+        alphabet = set()
+        for codon in codon_list:
+            for nt in codon:
+                alphabet.add(nt)
+        a = len(alphabet)
+        # get codon length
+        l = len(codon_list[0])
+        # calculate mut_num and return
+        return (a**l) * l * (a-1)
 
 if __name__ == '__main__':
     table = {

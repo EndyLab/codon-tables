@@ -81,6 +81,14 @@ for c1 in rNTPs:
             if (c3 != 'U'):
                 count+=1
 
+# define quadruplet codon set
+quadrupletCodons = []
+for nt1 in rNTPs:
+    for nt2 in rNTPs:
+        for nt3 in rNTPs:
+            for nt4 in rNTPs:
+                quadrupletCodons.append(nt1+nt2+nt3+nt4)
+
 naturalBlock = {
     0 : ['UUU', 'UUC'],
     1 : ['UUA', 'UUG'],
@@ -137,6 +145,18 @@ for codon in tripletCodons:
             # add to set
             tripletMutPairs.add((codon, c_new))
 
+# define all pairs of quadruplet codons 1 mutation away
+quadrupletMutPairs = set()
+for codon in quadrupletCodons:
+    for i, base in enumerate(codon):
+        for nt in rNTPs:
+            # handle if nt is the same as base
+            if nt == base:
+                continue
+            # if not, generate new codon
+            c_new = codon[:i] + nt + codon[i+1:]
+            # add to set
+            quadrupletMutPairs.add((codon, c_new))
 # define refactored [sic] code from Pines et al 2017 (aka Colorado code)
 coloradoTable = {
     'GAA' : 'V',
@@ -231,6 +251,7 @@ for AA1 in indices:
 if __name__ == '__main__':
     # time to pickle!
     toDump = [dNTPs, rNTPs, residues, tripletCodons, tripletMutPairs,
+                quadrupletCodons, quadrupletMutPairs,
                 PRS, kdHydrophobicity, Gilis, SCV,
                 unrestrictedBlock, standardBlock, naturalBlock,
                 basepairWC, wobbleWC,

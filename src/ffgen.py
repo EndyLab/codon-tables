@@ -150,6 +150,10 @@ class ffgen():
         ----------
         dict table: a quadruplet fast fail table
         '''
+        # initially map all codons to stop
+        table = {}
+        for codon in utils.quadrupletCodons:
+            table[codon] = '*'
         # handle user defined vs default AA set definition
         if AA_set is None:
             unusedAA = set(utils.residues[:-1])
@@ -157,7 +161,6 @@ class ffgen():
             raise ValueError('User defined amino acid set has too many signals to encode in a fast failing quadruplet code ({0}, max of 64)'.format(len(AA_set)))
         else:
             unusedAA = set(AA_set)
-        table = {}
         # randomly permute rNTPs for positions 1, 2, and 4; store 3 unpermuted
         pos1 = np.random.permutation(utils.rNTPs)
         pos2 = np.random.permutation(utils.rNTPs)
