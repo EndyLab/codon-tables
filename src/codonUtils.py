@@ -486,10 +486,10 @@ class utils:
 
     @staticmethod
     def promiscuity(table, allow_ambiguous=False):
-        '''A static method used to generate the genetic code resulting from considering tRNA promiscuity. Uses Crick Wobble Hypothesis. Raises an exception if the table generated is ambiguous (more than one signal acceptable for a given codon)
-
-        NOTE: this method only makes sense in the context of triplet codes, for
-        which pre-existing translational machinery exists
+        '''A static method used to generate the genetic code resulting from
+        considering tRNA promiscuity. Uses Crick Wobble Hypothesis. Raises an
+        exception if the table generated is ambiguous (more than one signal
+        acceptable for a given codon)
 
         Parameters
         ----------
@@ -505,6 +505,7 @@ class utils:
         for codon in utils.tripletCodons:
             promiscuous[codon] = '*'
         # loop over codons to reassign
+        # import ipdb; ipdb.set_trace()
         for codon, AA in table.items():
             # skip assignments to STOP
             if AA == '*': continue
