@@ -179,14 +179,14 @@ class codonTable:
         # return arrays
         return xs, ys, zs, vals, stops
 
-    def dictToTable(self, table=None, codon_suffix=''):
+    def dictToTable(self, table=None, suffix=''):
         '''A method used to convert a dict representing a codon table to a
         pandas DataFrame representing the same table in a human readable form
 
         Paramters
         ---------
         - dict table=None: python dict representing a codon table
-        - str codon_suffix: string to append to each codon (used for quadruplet
+        - str suffix: string to append to each codon (used for quadruplet
             tables and higher)
 
         Returns
@@ -200,12 +200,25 @@ class codonTable:
         # get list of rNTPs
         NTP = utils.rNTPs
         # recurse if quadruplet code or higher dimmensional
-        if len(list(table)[0]) > 3:
-            # get subtables and appropriate suffixes
+        if (len(list(table)[0]) > 3) and (suffix == ''):
+            # declare storage variables
             suffixes = set()
             dfs = []
+            # get suffixes
             for codon, AA in table.items():
-                pass
+                suffixes.add(codon[3:])
+            # for each suffix, get subtable and convert to dataframe
+            suffixes = utils.orderNTPs(list(suffixes))
+            subtables = {}
+            for suffix in suffixes:
+                subdict = {
+                    codon:table[codon] for codon in table if codon[3:] == suffix
+                }
+                subtables[suffix] = subdict
+                df = self.dictToTable(table=table, suffix=suffix)
+                dfs.append(df)
+            # get the concatenation of the resulting dataframes
+            DF = pd.concat(dfs, keys=suffixes, copy=False)
         else:
             # declare list of dataframes
             dfs = []
@@ -217,7 +230,7 @@ class codonTable:
                     row = []
                     # for each third position, populate row list
                     for c3 in NTP:
-                        codon = c1+c2+c3
+                        codon = c1+c2+c3+suffix
                         '''NOTE: this is where things get funky'''
                         row.append(codon + ' : ' + table[codon])
                     # add row to dict under label of second position
@@ -225,8 +238,8 @@ class codonTable:
                 # create new data frame and add to list of data frames
                 df = pd.DataFrame(dfDict, index=NTP)
                 dfs.append(df[NTP])
-                # get the concatenation of the resulting dataframes
-                DF = pd.concat(dfs, keys=NTP, copy=False)
+            # get the concatenation of the resulting dataframes
+            DF = pd.concat(dfs, keys=NTP, copy=False)
         return DF
 
     def dictToGraph(self, table=None, norm=True):

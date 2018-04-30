@@ -592,6 +592,40 @@ class utils:
                     mut_pairs.add((codon, c_new))
         return mut_pairs
 
+    @staticmethod
+    def orderNTPs(sortable, nucleic_acid='RNA'):
+        '''A static method used to sort iterables by standard order of NTPs. For RNA, U-C-A-G. For DNA, T-C-A-G. Returns sorted object.
+
+        Parameters
+        ----------
+        - iterable sortable: the object to sort
+        - str nucleic_acid: the type of nucleic acid considered
+
+        Returns
+        -------
+        iterable sorted_obj: the sorted object
+        '''
+        # define ordering dictionary
+        orderdict = {
+            'RNA' : ['U', 'C', 'A', 'G'],
+            'DNA' : ['T', 'C', 'A', 'G']
+        }
+        # raise error if nucleic_acid flag invalid
+        if nucleic_acid.upper() not in orderdict:
+            raise ValueError('nucleic_acid flag set to invalid option (use DNA or RNA)')
+        # attempt sorting
+        try:
+            order = orderdict[nucleic_acid.upper()]
+            sorted_obj = sorted(
+                sortable, key=lambda word: [order.index(nt) for nt in word]
+            )
+        except ValueError:
+            print('Variable to sort broke the code :/')
+            # raise error
+            sorted_obj = False
+        return sorted_obj
+
+
 if __name__ == '__main__':
     table = {
         'UUU' : 'F',
