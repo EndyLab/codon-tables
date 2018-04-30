@@ -48,3 +48,4 @@ silencicity = test(utils.silencicity, ffquad)
 mutability = test(utils.mutability, ffquad)
 
 # codonTable tests
+table = test(codonTable, ffquad) # test initialization of codonTable object

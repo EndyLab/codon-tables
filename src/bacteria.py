@@ -76,18 +76,23 @@ class strain():
             # initialize counters for the standard code and strain code
             count_sc = 0
             count = 0
-            # for each codon pair, one mutation separated
+            # calculate mutational availability metric for standard code
             for (c1, c2) in utils.tripletMutPairs:
                 # increment counters if substitution is nonsynonymous AND
                 # neither codon encodes for a STOP
                 count_sc += not (
                     (sc[c1] == '*' or sc[c2] == '*') or
                     (sc[c1] == sc[c2]))
+            # calculate corresponding availability metric for strain code
+            mut_pairs = utils.getMutPairs(table)
+            for (c1, c2) in mut_pairs
                 count += not (
                     (table[c1] == '*' or table[c2] == '*') or
                     (table[c1] == table[c2]))
-            # adjust mutation rate by ratio of substitutions
-            mu_adj = mu*(count/count_sc)
+            # adjust mutation rate by ratio of availability metrics
+            f_sc = count_sc / len(utils.tripletMutPairs)
+            f_table = count / len(mut_pairs)
+            mu_adj = mu*(f_table/t_sc)
 
         # return the adjusted mutation rate
         return mu_adj
