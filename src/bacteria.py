@@ -85,14 +85,14 @@ class strain():
                     (sc[c1] == sc[c2]))
             # calculate corresponding availability metric for strain code
             mut_pairs = utils.getMutPairs(table)
-            for (c1, c2) in mut_pairs
+            for (c1, c2) in mut_pairs:
                 count += not (
                     (table[c1] == '*' or table[c2] == '*') or
                     (table[c1] == table[c2]))
             # adjust mutation rate by ratio of availability metrics
             f_sc = count_sc / len(utils.tripletMutPairs)
             f_table = count / len(mut_pairs)
-            mu_adj = mu*(f_table/t_sc)
+            mu_adj = mu*(f_table/f_sc)
 
         # return the adjusted mutation rate
         return mu_adj
