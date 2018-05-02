@@ -122,15 +122,23 @@ def endpoint_contain(DF, code):
     return contain, N_0
 
 # calculate containment probabilities
+logging.info("Processing RED15")
 RED15_contour, t, N_0 = contain_probability(DF, 'RED15')
+logging.info("Processing PROMISC15")
 PROMISC15_contour, t, N_0 = contain_probability(DF, 'PROMISC15')
+logging.info("Processing RED20")
 RED20_contour, t, N_0 = contain_probability(DF, 'RED20')
+logging.info("Processing PROMISC20")
 PROMISC20_contour, t, N_0 = contain_probability(DF, 'PROMISC20')
+logging.info("Processing FF20")
 FF20_contour, t, N_0 = contain_probability(DF, 'FF20')
-FF16_contour, t, N_0 = contain_probability(DF, 'FF16')
-Standard_contour, t, N_0 = contain_probability(DF, 'Standard')
-
+logging.info("Processing FF16")
+# FF16_contour, t, N_0 = contain_probability(DF, 'FF16')
+logging.info("Processing Standard Code")
+# Standard_contour, t, N_0 = contain_probability(DF, 'Standard')
+#
 # save output
+data = [FF20_contour, FF16_contour, RED20_contour, RED15_contour, Standard_contour, PROMISC20_contour, PROMISC15_contour, t, N_0]
 file_basename = 'contour_caching_lin.pickle'
 file_path = '/home/ubuntu/' + file_basename
 file_s3path = s3_path + file_basename
@@ -138,7 +146,7 @@ plt.savefig(file_path)
 with open(file_path, 'rb') as data:
     s3.upload_fileobj(data, bucketname, file_s3path)
 success_string = (
-    "Success! Inset saved to {0}:{1}. ".format(bucketname, file_s3path)
+    "Success! Pickle saved to {0}:{1}. ".format(bucketname, file_s3path)
     + "Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'".format(s3_region)
     + " to see output figure file."
 )
