@@ -122,13 +122,13 @@ def endpoint_contain(DF, code):
     return contain, N_0
 
 # calculate containment probabilities
-Standard_contour, t, N_0 = contain_probability(DF, 'Standard')
+RED15_contour, t, N_0 = contain_probability(DF, 'RED15')
+PROMISC15_contour, t, N_0 = contain_probability(DF, 'PROMISC15')
+RED20_contour, t, N_0 = contain_probability(DF, 'RED20')
+PROMISC20_contour, t, N_0 = contain_probability(DF, 'PROMISC20')
 FF20_contour, t, N_0 = contain_probability(DF, 'FF20')
 FF16_contour, t, N_0 = contain_probability(DF, 'FF16')
-RED20_contour, t, N_0 = contain_probability(DF, 'RED20')
-RED15_contour, t, N_0 = contain_probability(DF, 'RED15')
-PROMISC20_contour, t, N_0 = contain_probability(DF, 'PROMISC20')
-PROMISC15_contour, t, N_0 = contain_probability(DF, 'PROMISC15')
+Standard_contour, t, N_0 = contain_probability(DF, 'Standard')
 
 # save output
 file_basename = 'contour_caching_lin.pickle'
