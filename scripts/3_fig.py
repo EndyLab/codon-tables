@@ -81,21 +81,27 @@ logging.info("Concatenating Dataframes")
 DF = pd.concat(dfs, copy=False)
 
 # extract dataframe for figure 3
-codes_3b = ['Colorado', 'Standard Code']
-codes_3c = list(set(DF['code']) - set(codes_3b))
-f = lambda code: code in codes_3b
-g = lambda code: not f(code)
-DF_3b = DF.loc[DF['code'].map(f)]
-DF_3c = DF.loc[DF['code'].map(g)]
 
+## NOTE: Use this block if splitting evolutionary rates into two subfigures
+# codes_3b = ['Colorado', 'Standard Code']
+# codes_3c = list(set(DF['code']) - set(codes_3b))
+# f = lambda code: code in codes_3b
+# g = lambda code: not f(code)
+# DF_3b = DF.loc[DF['code'].map(f)]
+# DF_3c = DF.loc[DF['code'].map(g)]
+
+DF_3b = DF
 logging.info("Plotting 3B: Mean Fitness Traces")
+colors = sns.color_palette("Paired", 10, desat=0.75).as_hex()
 colordict = {
-    'Standard Code' : 'blue',
-    'Colorado' : 'red',
-    'FF20' : 'green',
-    'FF16' : 'orange',
-    'RED20' : 'purple',
-    'RED14' : 'brown'
+    'Standard Code' : colors[1],
+    'Colorado' : colors[3],
+    'FF20' : colors[5],
+    'FF16' : colors[4],
+    'RED20' : colors[7],
+    'RED15' : colors[6],
+    'PROMISC20' : colors[9],
+    'PROMISC15' : colors[8]
 }
 plt.figure()
 ax1 = sns.tsplot(
@@ -113,7 +119,7 @@ sns.despine()
 plt.xlim([0, 1000])
 plt.ylim([0, 1.3])
 plt.legend()
-plt.title('Hyper-evolvable', fontsize=labelsize)
+# plt.title('Hyper-evolvable', fontsize=labelsize)
 plt.xlabel('Time (in generations)')
 plt.ylabel('Mean Fitness')
 
@@ -132,68 +138,68 @@ success_string = (
 )
 logging.info(success_string)
 
-# move on to 3C:
-logging.info("Plotting 3C: Mean Fitness Traces")
-plt.figure()
-ax1 = sns.tsplot(
-    data=DF_3c,
-    time='time',
-    value='fitness',
-    unit='sim',
-    condition='code',
-    color=colordict,
-    ci='sd'
-)
-# format plot
-logging.info("Formatting 3C")
-sns.despine()
-plt.xlim([0, 1000])
-# plt.ylim([0, 1.3])
-plt.xticks([0, 500, 1000])
-plt.yticks([0, 0.15, 0.3])
-plt.legend()
-plt.title('Hypo-evolvable', fontsize=labelsize)
-plt.xlabel('Time (in generations)')
-plt.ylabel('Mean Fitness')
-
-# save output
-logging.info("Saving Figure 3C and inset to S3")
-figure_basename = '3c_inset_vector.svg'
-figure_path = '/home/ubuntu/' + figure_basename
-figure_s3path = s3_path + figure_basename
-plt.savefig(figure_path)
-with open(figure_path, 'rb') as data:
-    s3.upload_fileobj(data, bucketname, figure_s3path)
-success_string = (
-    "Success! Figure saved to {0}:{1}. ".format(bucketname, figure_s3path)
-    + "Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'".format(s3_region)
-    + " to see output figure file."
-)
-logging.info(success_string)
-
-ax1 = sns.tsplot(
-    data=DF_3b.loc[DF_3b['code'] == 'Standard Code'],
-    time='time',
-    value='fitness',
-    unit='sim',
-    condition='code',
-    color=colordict,
-    ci='sd'
-)
-plt.xticks([0, 200, 400, 600, 800, 1000])
-plt.yticks([0, 0.2, 0.4, 0.6, 0.8, 1])
-figure_basename = '3c_vector.svg'
-figure_path = '/home/ubuntu/' + figure_basename
-figure_s3path = s3_path + figure_basename
-plt.savefig(figure_path)
-with open(figure_path, 'rb') as data:
-    s3.upload_fileobj(data, bucketname, figure_s3path)
-success_string = (
-    "Success! Inset saved to {0}:{1}. ".format(bucketname, figure_s3path)
-    + "Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'".format(s3_region)
-    + " to see output figure file."
-)
-logging.info(success_string)
+# # move on to 3C:
+# logging.info("Plotting 3C: Mean Fitness Traces")
+# plt.figure()
+# ax1 = sns.tsplot(
+#     data=DF_3c,
+#     time='time',
+#     value='fitness',
+#     unit='sim',
+#     condition='code',
+#     color=colordict,
+#     ci='sd'
+# )
+# # format plot
+# logging.info("Formatting 3C")
+# sns.despine()
+# plt.xlim([0, 1000])
+# # plt.ylim([0, 1.3])
+# plt.xticks([0, 500, 1000])
+# plt.yticks([0, 0.15, 0.3])
+# plt.legend()
+# plt.title('Hypo-evolvable', fontsize=labelsize)
+# plt.xlabel('Time (in generations)')
+# plt.ylabel('Mean Fitness')
+#
+# # save output
+# logging.info("Saving Figure 3C and inset to S3")
+# figure_basename = '3c_inset_vector.svg'
+# figure_path = '/home/ubuntu/' + figure_basename
+# figure_s3path = s3_path + figure_basename
+# plt.savefig(figure_path)
+# with open(figure_path, 'rb') as data:
+#     s3.upload_fileobj(data, bucketname, figure_s3path)
+# success_string = (
+#     "Success! Figure saved to {0}:{1}. ".format(bucketname, figure_s3path)
+#     + "Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'".format(s3_region)
+#     + " to see output figure file."
+# )
+# logging.info(success_string)
+#
+# ax1 = sns.tsplot(
+#     data=DF_3b.loc[DF_3b['code'] == 'Standard Code'],
+#     time='time',
+#     value='fitness',
+#     unit='sim',
+#     condition='code',
+#     color=colordict,
+#     ci='sd'
+# )
+# plt.xticks([0, 200, 400, 600, 800, 1000])
+# plt.yticks([0, 0.2, 0.4, 0.6, 0.8, 1])
+# figure_basename = '3c_vector.svg'
+# figure_path = '/home/ubuntu/' + figure_basename
+# figure_s3path = s3_path + figure_basename
+# plt.savefig(figure_path)
+# with open(figure_path, 'rb') as data:
+#     s3.upload_fileobj(data, bucketname, figure_s3path)
+# success_string = (
+#     "Success! Inset saved to {0}:{1}. ".format(bucketname, figure_s3path)
+#     + "Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'".format(s3_region)
+#     + " to see output figure file."
+# )
+# logging.info(success_string)
 
 # # continue on to figure 3c and 3d
 # logging.info('Calculating Lag Times and Growth Rates')
