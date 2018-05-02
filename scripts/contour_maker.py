@@ -132,7 +132,7 @@ PROMISC20_contour, t, N_0 = contain_probability(DF, 'PROMISC20')
 PROMISC15_contour, t, N_0 = contain_probability(DF, 'PROMISC15')
 
 # save output
-file_basename = '3c_inset_vector.svg'
+file_basename = 'contour_caching_lin.pickle'
 file_path = '/home/ubuntu/' + file_basename
 file_s3path = s3_path + file_basename
 plt.savefig(file_path)
