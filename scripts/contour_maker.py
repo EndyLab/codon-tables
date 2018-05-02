@@ -65,7 +65,7 @@ for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
     basepath = os.path.basename(s3_filename)
     local_filename = 'res/{0}'.format(basepath)
-    s3.download_file(bucketname, s3_filename, local_filename)
+    # s3.download_file(bucketname, s3_filename, local_filename)
     local_filenames.append(local_filename)
 logging.info("Download Successful!")
 
@@ -138,11 +138,12 @@ logging.info("Processing Standard Code")
 Standard_contour, t, N_0 = [0, 0, 0]#contain_probability(DF, 'Standard')
 #
 # save output
-data = [FF20_contour, FF16_contour, RED20_contour, RED15_contour, Standard_contour, PROMISC20_contour, PROMISC15_contour, t, N_0]
+pickle_data = [FF20_contour, FF16_contour, RED20_contour, RED15_contour, Standard_contour, PROMISC20_contour, PROMISC15_contour, t, N_0]
 file_basename = 'contour_caching_lin.pickle'
 file_path = '/home/ubuntu/' + file_basename
 file_s3path = s3_path + file_basename
-plt.savefig(file_path)
+with open(file_path, 'wb') as handle:
+    pickle.dump(pickle_data, handle)
 with open(file_path, 'rb') as data:
     s3.upload_fileobj(data, bucketname, file_s3path)
 success_string = (
