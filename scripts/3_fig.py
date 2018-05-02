@@ -117,7 +117,7 @@ ax1 = sns.tsplot(
 logging.info("Formatting 3B")
 sns.despine()
 plt.xlim([0, 1000])
-plt.ylim([0, 1.3])
+plt.ylim([-0.05, 1.3])
 plt.legend()
 # plt.title('Hyper-evolvable', fontsize=labelsize)
 plt.xlabel('Time (in generations)')
