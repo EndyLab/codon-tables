@@ -64,7 +64,7 @@ local_filenames = []
 for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
     basepath = os.path.basename(s3_filename)
-    local_filename = 'res/{0}'.format(basepath)
+    # local_filename = 'res/{0}'.format(basepath)
     s3.download_file(bucketname, s3_filename, local_filename)
     local_filenames.append(local_filename)
 logging.info("Download Successful!")
@@ -123,7 +123,6 @@ def endpoint_contain(DF, code):
 
 # calculate containment probabilities
 Standard_contour, t, N_0 = contain_probability(DF, 'Standard')
-Colorado_contour, t, N_0 = contain_probability(DF, 'Colorado')
 FF20_contour, t, N_0 = contain_probability(DF, 'FF20')
 FF16_contour, t, N_0 = contain_probability(DF, 'FF16')
 RED20_contour, t, N_0 = contain_probability(DF, 'RED20')
