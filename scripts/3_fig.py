@@ -95,9 +95,9 @@ logging.info("Plotting 3B: Mean Fitness Traces")
 colors = sns.color_palette("Paired", 10, desat=0.75).as_hex()
 colordict = {
     'Standard Code' : colors[1],
-    'Colorado' : colors[3],
-    'FF20' : colors[5],
-    'FF16' : colors[4],
+    'Colorado' : colors[5],
+    'FF20' : colors[3],
+    'FF16' : colors[2],
     'RED20' : colors[7],
     'RED15' : colors[6],
     'PROMISC20' : colors[9],
