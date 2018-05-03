@@ -100,7 +100,7 @@ colordict = {
 }
 plt.figure()
 ax1 = sns.tsplot(
-    data=DF.loc[(DF['code'].map(g))]
+    data=DF.loc[(DF['code'].map(g))], 
     time='time',
     value='fitness',
     unit='sim',
