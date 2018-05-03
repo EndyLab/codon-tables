@@ -66,7 +66,7 @@ for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
     basepath = os.path.basename(s3_filename)
     local_filename = 'res/{0}'.format(basepath)
-    # s3.download_file(bucketname, s3_filename, local_filename)
+    s3.download_file(bucketname, s3_filename, local_filename)
     local_filenames.append(local_filename)
 logging.info("Download Successful!")
 
@@ -83,7 +83,7 @@ DF = pd.concat(dfs, copy=False)
 
 # extract dataframe for figure 5
 ffcodes = ['FF20', 'FF16']
-dashcodes = ['PROMISC15', 'RED15']
+dashcodes = ['PROMISC20', 'RED20']
 f = lambda code: (code not in dashcodes) and (code not in ffcodes)
 g = lambda code: code not in dashcodes
 
