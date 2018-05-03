@@ -35,7 +35,7 @@ sns.set_style('white')
 sns.set_style('ticks')
 
 labelsize=16
-width = 4
+width = 6
 height = width / 1.618
 
 plt.rc('font', family='serif')
@@ -82,23 +82,25 @@ logging.info("Concatenating Dataframes")
 DF = pd.concat(dfs, copy=False)
 
 # extract dataframe for figure 5
-dashcodes = ['PROMISC20', 'PROMISC14']
-f = lambda code: code not in dashcodes
+ffcodes = ['FF20', 'FF16']
+# dashcodes = ['PROMISC20', 'PROMISC14']
+f = lambda code: (code not in dashcodes) and (code not in ffcodes)
+g = lambda code: code not in ffcodes
 
 logging.info("Plotting 5b-1: solid line traces")
 colordict = {
-    'Standard Code' : 'blue',
-    'Colorado' : 'red',
-    'FF20' : 'green',
-    'FF16' : 'orange',
-    'RED20' : 'purple',
-    'RED14' : 'brown',
-    'PROMISC20': 'purple',
-    'PROMISC14': 'brown'
+    'Standard Code' : colors[1],
+    'Colorado' : colors[5],
+    'FF20' : colors[3],
+    'FF16' : colors[2],
+    'RED20' : colors[7],
+    'RED15' : colors[6],
+    'PROMISC20' : colors[9],
+    'PROMISC15' : colors[8]
 }
 plt.figure()
 ax1 = sns.tsplot(
-    data=DF.loc[(DF['code'].map(f)) & (DF['code'] != 'Standard Code')],
+    data=DF.loc[(DF['code'].map(g))]
     time='time',
     value='fitness',
     unit='sim',
@@ -107,56 +109,55 @@ ax1 = sns.tsplot(
     ci='sd',
     linestyle='-'
 )
-logging.info("Plotting 5b-2: dashed line traces")
-ax2 = sns.tsplot(
-    data=DF.loc[(DF['code'].map(lambda code: not f(code)))],
-    time='time',
-    value='fitness',
-    unit='sim',
-    condition='code',
-    color=colordict,
-    ci='sd',
-    linestyle='--'
-)
+# logging.info("Plotting 5b-2: dashed line traces")
+# ax2 = sns.tsplot(
+#     data=DF.loc[(DF['code'].map(g))],
+#     time='time',
+#     value='fitness',
+#     unit='sim',
+#     condition='code',
+#     color=colordict,
+#     ci='sd',
+#     linestyle='--'
+# )
 # format plot
-logging.info("Formatting 5B_inset")
-sns.despine()
-plt.xlim([0, 1000])
-plt.xticks([0, 500, 1000])
-plt.ylim([-0.05, 0.6])
-plt.yticks([0, 0.3, 0.6])
-plt.legend()
-plt.title('Mean Fitness vs Time (1000 Simulations)', fontsize=labelsize)
-plt.xlabel('Time (in generations)')
-plt.ylabel('Mean Fitness')
+# logging.info("Formatting 5B_inset")
+# sns.despine()
+# plt.xlim([0, 1000])
+# plt.xticks([i*200 for i in range(6)])
+# plt.ylim([-0.05, 0.6])
+# plt.yticks([0, 0.3, 0.6])
+# plt.legend()
+# plt.title('Mean Fitness vs Time (1000 Simulations)', fontsize=labelsize)
+# plt.xlabel('Time (in generations)')
+# plt.ylabel('Mean Fitness')
 
-# save output
-logging.info("Saving Figure 5B inset to S3")
-figure_basename = '5b_inset_vector.svg'
-figure_path = '/home/ubuntu/' + figure_basename
-figure_s3path = s3_path + figure_basename
-plt.savefig(figure_path)
-with open(figure_path, 'rb') as data:
-    s3.upload_fileobj(data, bucketname, figure_s3path)
-success_string = (
-    "Success! Figure saved to {0}:{1}. ".format(bucketname, figure_s3path)
-    + "Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'".format(s3_region)
-    + " to see output figure file."
-)
-logging.info(success_string)
+# # save output
+# logging.info("Saving Figure 5B to S3")
+# figure_basename = '5b_inset_vector.svg'
+# figure_path = '/home/ubuntu/' + figure_basename
+# figure_s3path = s3_path + figure_basename
+# plt.savefig(figure_path)
+# with open(figure_path, 'rb') as data:
+#     s3.upload_fileobj(data, bucketname, figure_s3path)
+# success_string = (
+#     "Success! Figure saved to {0}:{1}. ".format(bucketname, figure_s3path)
+#     + "Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'".format(s3_region)
+#     + " to see output figure file."
+# )
+# logging.info(success_string)
 
 # move on to 5b main:
-logging.info("Plotting 5B Main: Mean Fitness Traces")
-ax3 = sns.tsplot(
-    data=DF.loc[DF['code'] == 'Standard Code'],
-    time='time',
-    value='fitness',
-    unit='sim',
-    condition='code',
-    color=colordict,
-    ci='sd',
-    linestyle='-'
-)
+# ax3 = sns.tsplot(
+#     data=DF.loc[DF['code'] == 'Standard Code'],
+#     time='time',
+#     value='fitness',
+#     unit='sim',
+#     condition='code',
+#     color=colordict,
+#     ci='sd',
+#     linestyle='-'
+# )
 # format plot
 logging.info("Formatting 5B Main")
 sns.despine()
