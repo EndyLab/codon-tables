@@ -35,8 +35,8 @@ sns.set_style('white')
 sns.set_style('ticks')
 
 labelsize=16
-width = 6
-height = width / 1.618
+width = 8 / 1.5
+height = 6 / 1.5 #width / 1.618
 
 plt.rc('font', family='serif')
 plt.rc('xtick', labelsize=labelsize)
@@ -172,6 +172,8 @@ plt.legend()
 # plt.title('Mean Fitness vs Time (1000 Simulations)', fontsize=labelsize)
 plt.xlabel('Time (in generations)')
 plt.ylabel('Mean Fitness')
+fig = plt.gcf()
+fig.set_size_inches(width, height)
 
 figure_basename = '5b_vector.svg'
 figure_path = '/home/ubuntu/' + figure_basename
