@@ -88,15 +88,18 @@ f = lambda code: (code not in dashcodes) and (code not in ffcodes)
 g = lambda code: code not in ffcodes
 
 logging.info("Plotting 5b-1: solid line traces")
+
+color_palette = sns.color_palette("Paired", 10, desat=0.75).as_hex()
+
 colordict = {
-    'Standard Code' : colors[1],
-    'Colorado' : colors[5],
-    'FF20' : colors[3],
-    'FF16' : colors[2],
-    'RED20' : colors[7],
-    'RED15' : colors[6],
-    'PROMISC20' : colors[9],
-    'PROMISC15' : colors[8]
+    'Standard Code' : color_palette[1],
+    'Colorado' : color_palette[5],
+    'FF20' : color_palette[3],
+    'FF16' : color_palette[2],
+    'RED20' : color_palette[7],
+    'RED15' : color_palette[6],
+    'PROMISC20' : color_palette[9],
+    'PROMISC15' : color_palette[8]
 }
 plt.figure()
 ax1 = sns.tsplot(
