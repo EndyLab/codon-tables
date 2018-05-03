@@ -83,9 +83,9 @@ DF = pd.concat(dfs, copy=False)
 
 # extract dataframe for figure 5
 ffcodes = ['FF20', 'FF16']
-# dashcodes = ['PROMISC20', 'PROMISC14']
+dashcodes = ['PROMISC15', 'RED15']
 f = lambda code: (code not in dashcodes) and (code not in ffcodes)
-g = lambda code: code not in ffcodes
+g = lambda code: code not in dashcodes
 
 logging.info("Plotting 5b-1: solid line traces")
 
@@ -112,17 +112,17 @@ ax1 = sns.tsplot(
     ci='sd',
     linestyle='-'
 )
-# logging.info("Plotting 5b-2: dashed line traces")
-# ax2 = sns.tsplot(
-#     data=DF.loc[(DF['code'].map(g))],
-#     time='time',
-#     value='fitness',
-#     unit='sim',
-#     condition='code',
-#     color=colordict,
-#     ci='sd',
-#     linestyle='--'
-# )
+logging.info("Plotting 5b-2: dashed line traces")
+ax2 = sns.tsplot(
+    data=DF.loc[(DF['code'].map(lambda code: not g(code)))],
+    time='time',
+    value='fitness',
+    unit='sim',
+    condition='code',
+    color=colordict,
+    ci='sd',
+    linestyle='--'
+)
 # format plot
 # logging.info("Formatting 5B_inset")
 # sns.despine()
