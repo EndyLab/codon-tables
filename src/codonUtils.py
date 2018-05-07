@@ -500,6 +500,12 @@ class utils:
         -------
         dict promsicuous: the resulting table when considering tRNA promiscuity
         '''
+        # handle type errors for input table
+        if type(table) != dict:
+            try:
+                table = table.codonDict # attempt to convert to dict
+            except:
+                raise ValueError("Input table is not type dict or codonTable")
         # declare table to return
         promiscuous = {}
         for codon in utils.tripletCodons:
