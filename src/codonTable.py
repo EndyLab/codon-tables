@@ -49,10 +49,10 @@ class codonTable:
         self.utils = utils
         self.ordering = ordering
         self.codonDict = table
+        self.codonTable = self.dictToTable(table)
         self.ambiguous = ambiguous
         # assign attributes for unambiguous tables
         if not ambiguous:
-            self.codonTable = self.dictToTable(table)
             self.codonGraph = self.dictToGraph(table, norm)
             self.codonSparseMat = nx.adjacency_matrix(self.codonGraph)
             self.codonAdjMat = np.array(self.codonSparseMat.todense())
