@@ -132,6 +132,22 @@ class utils:
         return ambiguous
 
     @staticmethod
+    def isPromiscuous(table):
+        '''A staticmethod that takes a codon table as a dictionary and returns True if it represents a promiscuous table and False if not.
+
+        Parameters
+        ----------
+        dict table: a python dict representing the codon table
+
+        Returns
+        -------
+        bool ambiguous: boolean representing the promiscuity of the table
+        '''
+        # this is a one liner, but a tad obfuscated. Checks to see if each codon encodes for only one AA (thus is type str).
+        # returns true if any of the elements are not strings
+        return sum(type(AA) != str for AA in table.values()) > 0
+
+    @staticmethod
     def getCodonConnectivity(table):
         '''getCodonConnectivity(dict table) a function that takes a codon table
         and finds the graph distance between codon pairs. Connectivity is

@@ -42,14 +42,20 @@ class codonTable:
             # default to Kyte and Doolittle ordering
             ordering = utils.kdHydrophobicity
 
+        # determine table ambiguity
+        ambiguous = utils.isPromiscuous(table)
+
         # Assign assign instance attributes
         self.utils = utils
         self.ordering = ordering
         self.codonDict = table
-        self.codonTable = self.dictToTable(table)
-        self.codonGraph = self.dictToGraph(table, norm)
-        self.codonSparseMat = nx.adjacency_matrix(self.codonGraph)
-        self.codonAdjMat = np.array(self.codonSparseMat.todense())
+        self.ambiguous = ambiguous
+        # assign attributes for unambiguous tables
+        if not ambiguous:
+            self.codonTable = self.dictToTable(table)
+            self.codonGraph = self.dictToGraph(table, norm)
+            self.codonSparseMat = nx.adjacency_matrix(self.codonGraph)
+            self.codonAdjMat = np.array(self.codonSparseMat.todense())
 
     def sortOrdering(self):
         '''
@@ -232,7 +238,8 @@ class codonTable:
                     for c3 in NTP:
                         codon = c1+c2+c3+suffix
                         '''NOTE: this is where things get funky'''
-                        row.append(codon + ' : ' + table[codon])
+                        element = '{0} : {1}'.format(codon, table[codon])
+                        row.append(element)
                     # add row to dict under label of second position
                     dfDict[c2] = row
                 # create new data frame and add to list of data frames
