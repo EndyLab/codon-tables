@@ -112,6 +112,26 @@ class utils:
         return blockCounts
 
     @staticmethod
+    def isAmbiguous(table):
+        '''A staticmethod that takes a codon table as a dictionary and returns True if it is ambiguous and False if not.
+
+        Parameters
+        ----------
+        dict table: a python dict representing the codon table
+
+        Returns
+        -------
+        bool ambiguous: boolean representing the ambiguity of the table
+        '''
+        # use utils.promiscuity method to determine ambiguity
+        try:
+            __ = utils.promiscuity(table, allow_ambiguous=False) #fails if ambiguous
+            ambiguous = False
+        except:
+            ambiguous =True
+        return ambiguous
+
+    @staticmethod
     def getCodonConnectivity(table):
         '''getCodonConnectivity(dict table) a function that takes a codon table
         and finds the graph distance between codon pairs. Connectivity is
