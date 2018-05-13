@@ -323,7 +323,7 @@ class codonTable:
         plt.figure fig: matplotlib figure handle for the resulting plot
         '''
         # raise error if table is higher dimensional than triplet
-        dimension = len(list(self.codonDict))
+        dimension = len(list(self.codonDict)[0])
         if (dimension > 3):
             raise ValueError(
                 'Cannot plot 3d representation of {0}D genetic code'.format(dimension)
