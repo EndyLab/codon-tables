@@ -84,6 +84,7 @@ height = 1.75* width
 fps = 30
 vid_length = 5 # in sec
 tot_frames = fps*vid_length
+dpi = 300
 
 def framer(nFrame):
     # calculate curr_time
