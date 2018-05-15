@@ -16,7 +16,7 @@ from scipy.ndimage import convolve1d
 import peakutils
 import pandas as pd
 import seaborn as sns
-from tqdm import tqdm_notebook as tqdm
+from tqdm import tqdm
 import random
 from random import shuffle
 import pickle
