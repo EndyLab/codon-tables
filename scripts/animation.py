@@ -131,7 +131,8 @@ fig = plt.gcf()
 figure_basename = 'sim_vid.gif'
 figure_path = '/home/ubuntu/' + figure_basename
 figure_s3path = s3_path + figure_basename
-animation.save(figure_path, writer='imagemagick', dpi=dpi, fps=fps);
+anim = animation.FuncAnimation(fig, framer, frames=tot_frames)
+anim.save(figure_path, writer='imagemagick', dpi=dpi, fps=fps);
 fig = plt.figure()
 
 logging.info("Uploading Movie to S3")
