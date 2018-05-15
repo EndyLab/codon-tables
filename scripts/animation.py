@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import math
 import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
 import matplotlib.animation as animation
