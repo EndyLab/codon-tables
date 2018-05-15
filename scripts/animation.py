@@ -124,10 +124,10 @@ def framer(nFrame):
     )
 # set S3 variables
 bucketname = 'endylab-codon-table-simulations'
-s3_path = 'manuscript/fig3b/'
+s3_path = 'quals/simulation_vid/'
 s3_region = 'us-west-1'
 fig = plt.gcf()
-figure_basename = 'test_vid.gif'
+figure_basename = 'sim_vid.gif'
 figure_path = '/home/ubuntu/' + figure_basename
 figure_s3path = s3_path + figure_basename
 anim.save(figure_path, writer='imagemagick', dpi=dpi, fps=fps);
