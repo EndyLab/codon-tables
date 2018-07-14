@@ -122,14 +122,12 @@ ax = plt.gca()
 # plt.yticks([0, 0.5, 1])
 # plt.xticks([])
 
-path = '/home/jon/Lab/Fast Fail/Figures/Figure 5/'
 # plt.title('Containment Probability vs Invasive Pop. Fraction'.format(code), fontsize=labelsize)
 sns.despine()
 plt.ylabel('Containment Probability')
 plt.xlabel('Invasive Pop. Fraction')
 fig = plt.gcf()
 fig.set_size_inches(width, height)
-plt.savefig(path+'5c.svg')
 plt.show()
 # format plot
 logging.info("Formatting 5B Main")
