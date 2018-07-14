@@ -98,12 +98,14 @@ DF = pd.concat(dfs, copy=False)
 # massage dataframes into proper format
 N_0 = list(set(DF.loc[DF['code'] == 'Standard']['N_0']))
 N_0.sort()
+num_reps = len(DF.loc[(DF['N_0']== N_0[0]) & (DF['code'] == 'Standard')])
 for code in tqdm(colordict.keys(), desc='colors'):
     if code in ['FF20', 'FF16', 'Colorado']: continue
     if code == 'Standard Code':
         code = 'Standard'
     for n_0 in tqdm(N_0, desc='initial conditions'):
-        DF.loc[(DF['code'] == code)&(DF['N_0'] == n_0), 'sim'] = np.arange(num_reps)num_reps = len(DF.loc[(DF['N_0']== N_0[0]) & (DF['code'] == 'Standard')])
+        DF.loc[(DF['code'] == code)&(DF['N_0'] == n_0), 'sim'] = np.arange(num_reps)
+
 DF.loc[:,'popfrac'] = (DF.loc[:,'popfrac'] == 0)
 DF.loc[:,'N_0'] /= 1e6
 # extract dataframe for figure 5
