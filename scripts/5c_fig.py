@@ -105,6 +105,7 @@ colordict = {
 df = DF.loc[DF['code'].map(lambda code: code not in ['Colorado', 'PROMISC20', 'RED20'])]
 df_2 =  DF.loc[DF['code'].map(lambda code: code in ['PROMISC20', 'RED20'])]
 # plot solid and dashed tsplots
+import ipdb; ipdb.set_trace()
 sns.tsplot(data=df, time='N_0', value='popfrac', unit='sim', condition='code', err_style='boot_traces', n_boot=100, color=colordict)
 sns.tsplot(data=df_2, time='N_0', value='popfrac', unit='sim', condition='code',
            err_style='boot_traces', n_boot=100, color=colordict, linestyle='--')
