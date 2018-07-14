@@ -143,7 +143,7 @@ plt.ylabel('Mean Fitness')
 fig = plt.gcf()
 fig.set_size_inches(width, height)
 
-figure_basename = '5b_vector.svg'
+figure_basename = '5c_vector.svg'
 figure_path = '/home/ubuntu/' + figure_basename
 figure_s3path = s3_path + figure_basename
 plt.savefig(figure_path)
