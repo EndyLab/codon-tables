@@ -116,32 +116,15 @@ sns.tsplot(data=df, time='N_0', value='popfrac', unit='sim', condition='code', e
 sns.tsplot(data=df_2, time='N_0', value='popfrac', unit='sim', condition='code',
            err_style='boot_traces', n_boot=100, color=colordict, linestyle='--')
 
-ax = plt.gca()
-# plt.xlim([0.7, 1])
-# plt.ylim([])
-# plt.yticks([0, 0.5, 1])
-# plt.xticks([])
-
-# plt.title('Containment Probability vs Invasive Pop. Fraction'.format(code), fontsize=labelsize)
+# format plot
+logging.info("Formatting 5B Main")
 sns.despine()
 plt.ylabel('Containment Probability')
 plt.xlabel('Invasive Pop. Fraction')
 fig = plt.gcf()
 fig.set_size_inches(width, height)
-plt.show()
-# format plot
-logging.info("Formatting 5B Main")
 sns.despine()
-plt.xlim([0, 1000])
-plt.xticks([0, 200, 400, 600, 800, 1000])
-plt.ylim([-0.05, 1.05])
-plt.yticks([0, 0.2, 0.4, 0.6, 0.8, 1])
 plt.legend()
-# plt.title('Mean Fitness vs Time (1000 Simulations)', fontsize=labelsize)
-plt.xlabel('Time (in generations)')
-plt.ylabel('Mean Fitness')
-fig = plt.gcf()
-fig.set_size_inches(width, height)
 
 figure_basename = '5c_vector.svg'
 figure_path = '/home/ubuntu/' + figure_basename
