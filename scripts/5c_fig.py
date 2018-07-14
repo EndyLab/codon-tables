@@ -71,7 +71,6 @@ for s3_filename in pbar:
 logging.info("Download Successful!")
 
 # concatenate dataframes into one big dataframe
-logging.info("Unpacking Dataframes")
 dfs = []
 pbar = tqdm(local_filenames)
 for file in pbar:
@@ -81,6 +80,11 @@ for file in pbar:
 logging.info("Concatenating Dataframes")
 DF = pd.concat(dfs, copy=False)
 
+DF.loc[:,'popfrac'] = (DF.loc[:,'popfrac'] == 0)
+DF.loc[:,'N_0'] /= 1e6logging.info("Unpacking Dataframes")
+N_0 = list(set(DF.loc[DF['code'] == 'Standard']['N_0']))
+N_0.sort()
+num_reps = len(DF.loc[(DF['N_0']== N_0[0]) & (DF['code'] == 'Standard')])
 # extract dataframe for figure 5
 logging.info("Plotting 5C")
 
