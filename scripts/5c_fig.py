@@ -97,6 +97,7 @@ colordict = {
     'PROMISC15' : color_palette[8]
 }
 # create mini dataframes
+import ipdb; ipdb.set_trace()
 df = DF.loc[DF['code'].map(lambda code: code not in ['Colorado', 'PROMISC20', 'RED20'])]
 df_2 =  DF.loc[DF['code'].map(lambda code: code in ['PROMISC20', 'RED20'])]
 # plot solid and dashed tsplots

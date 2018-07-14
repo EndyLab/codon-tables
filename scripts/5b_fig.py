@@ -45,7 +45,8 @@ plt.rc('axes', labelsize=labelsize)
 
 # set variables
 bucketname = 'endylab-codon-table-simulations'
-s3_path = 'manuscript/fig5/'
+
+s3_path = 'manuscript/fig5b/'
 s3_region = 'us-west-1'
 
 # get pickle files and concatenate
