@@ -33,6 +33,20 @@ from src.bacteria import strain
 sns.set_context("paper")
 sns.set_style('white')
 sns.set_style('ticks')
+# set up colors
+color_palette = sns.color_palette("Paired", 10, desat=0.75).as_hex()
+
+colordict = {
+    'Standard' : color_palette[1],
+    'Colorado' : color_palette[5],
+    'FF20' : color_palette[3],
+    'FF16' : color_palette[2],
+    'RED20' : color_palette[7],
+    'RED15' : color_palette[6],
+    'PROMISC20' : color_palette[9],
+    'PROMISC15' : color_palette[8]
+}
+# create mini dataframes
 
 labelsize=16
 width = 8 / 1.5
@@ -81,27 +95,20 @@ for file in pbar:
 logging.info("Concatenating Dataframes")
 DF = pd.concat(dfs, copy=False)
 
-DF.loc[:,'popfrac'] = (DF.loc[:,'popfrac'] == 0)
-DF.loc[:,'N_0'] /= 1e6
+# massage dataframes into proper format
 N_0 = list(set(DF.loc[DF['code'] == 'Standard']['N_0']))
 N_0.sort()
-num_reps = len(DF.loc[(DF['N_0']== N_0[0]) & (DF['code'] == 'Standard')])
+for code in tqdm(colordict.keys(), desc='colors'):
+    if code in ['FF20', 'FF16', 'Colorado']: continue
+    if code == 'Standard Code':
+        code = 'Standard'
+    for n_0 in tqdm(N_0, desc='initial conditions'):
+        DF.loc[(DF['code'] == code)&(DF['N_0'] == n_0), 'sim'] = np.arange(num_reps)num_reps = len(DF.loc[(DF['N_0']== N_0[0]) & (DF['code'] == 'Standard')])
+DF.loc[:,'popfrac'] = (DF.loc[:,'popfrac'] == 0)
+DF.loc[:,'N_0'] /= 1e6
 # extract dataframe for figure 5
 logging.info("Plotting 5C")
 
-color_palette = sns.color_palette("Paired", 10, desat=0.75).as_hex()
-
-colordict = {
-    'Standard' : color_palette[1],
-    'Colorado' : color_palette[5],
-    'FF20' : color_palette[3],
-    'FF16' : color_palette[2],
-    'RED20' : color_palette[7],
-    'RED15' : color_palette[6],
-    'PROMISC20' : color_palette[9],
-    'PROMISC15' : color_palette[8]
-}
-# create mini dataframes
 df = DF.loc[DF['code'].map(lambda code: code not in ['Colorado', 'PROMISC20', 'RED20'])]
 df_2 =  DF.loc[DF['code'].map(lambda code: code in ['PROMISC20', 'RED20'])]
 # plot solid and dashed tsplots
