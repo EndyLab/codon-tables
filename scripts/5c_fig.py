@@ -1,5 +1,4 @@
-t pull
-git import logging
+import logging
 logging.basicConfig(level=logging.INFO)
 
 # import necessary modules
@@ -45,7 +44,7 @@ colordict = {
     'RED20' : color_palette[7],
     'RED15' : color_palette[6],
     'PROMISC20' : color_palette[9],
-    'PROMISC15' : color_palette[8]
+    'PROMISC15' : color_palette[9]
 }
 # create mini dataframes
 
