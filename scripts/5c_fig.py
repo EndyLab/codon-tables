@@ -117,14 +117,14 @@ sns.tsplot(data=df_2, time='N_0', value='popfrac', unit='sim', condition='code',
            err_style='boot_traces', n_boot=100, color=colordict, linestyle='--')
 
 # format plot
-logging.info("Formatting 5B Main")
+logging.info("Formatting 5C Main")
 sns.despine()
 plt.ylabel('Containment Probability')
 plt.xlabel('Invasive Pop. Fraction')
 fig = plt.gcf()
 fig.set_size_inches(width, height)
-sns.despine()
 plt.legend()
+plt.show()
 
 figure_basename = '5c_vector.svg'
 figure_path = '/home/ubuntu/' + figure_basename
