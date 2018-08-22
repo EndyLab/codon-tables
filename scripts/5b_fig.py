@@ -98,9 +98,9 @@ colordict = {
     'FF20' : color_palette[3],
     'FF16' : color_palette[2],
     'RED20' : color_palette[7],
-    'RED15' : color_palette[6],
-    'PROMISC20' : color_palette[9],
-    'PROMISC15' : color_palette[8]
+    'RED15' : color_palette[9],
+    'PROMISC20' : color_palette[7],
+    'PROMISC15' : color_palette[9]
 }
 plt.figure()
 ax1 = sns.tsplot(
