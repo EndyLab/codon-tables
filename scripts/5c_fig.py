@@ -109,8 +109,8 @@ DF.loc[:,'N_0'] /= 1e6
 # extract dataframe for figure 5
 logging.info("Plotting 5C")
 
-df = DF.loc[DF['code'].map(lambda code: code not in ['Colorado', 'PROMISC20', 'RED20'])]
-df_2 =  DF.loc[DF['code'].map(lambda code: code in ['PROMISC20', 'RED20'])]
+df = DF.loc[DF['code'].map(lambda code: code not in ['Colorado', 'PROMISC20', 'PROMISC15'])]
+df_2 =  DF.loc[DF['code'].map(lambda code: code in ['PROMISC20', 'PROMISC15'])]
 # plot solid and dashed tsplots
 sns.tsplot(data=df, time='N_0', value='popfrac', unit='sim', condition='code', err_style='boot_traces', n_boot=100, color=colordict)
 sns.tsplot(data=df_2, time='N_0', value='popfrac', unit='sim', condition='code',

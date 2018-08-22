@@ -84,7 +84,7 @@ DF = pd.concat(dfs, copy=False)
 
 # extract dataframe for figure 5
 ffcodes = ['FF20', 'FF16']
-dashcodes = ['PROMISC20', 'RED20']
+dashcodes = ['PROMISC20', 'PROMISC15']
 f = lambda code: (code not in dashcodes) and (code not in ffcodes)
 g = lambda code: code not in dashcodes
 
