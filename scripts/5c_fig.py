@@ -100,10 +100,10 @@ N_0 = list(set(DF.loc[DF['code'] == 'Standard']['N_0']))
 N_0.sort()
 num_reps = len(DF.loc[(DF['N_0']== N_0[0]) & (DF['code'] == 'Standard')])
 codes = [code for code in colordict.keys() if code not in ['FF20', 'FF16', 'Colorado', 'FFQUAD']]
+import ipdb; ipdb.set_trace()
 for code in tqdm(codes, desc='codes'):
     logging.info("Processing Data for {0}".format(code))
     for n_0 in tqdm(N_0, desc='initial conditions'):
-        import ipdb; ipdb.set_trace()
         DF.loc[(DF['code'] == code)&(DF['N_0'] == n_0), 'sim'] = np.arange(num_reps)
 
 DF.loc[:,'popfrac'] = (DF.loc[:,'popfrac'] == 0)
