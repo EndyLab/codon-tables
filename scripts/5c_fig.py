@@ -37,13 +37,13 @@ sns.set_style('ticks')
 color_palette = sns.color_palette("Paired", 10, desat=0.75).as_hex()
 
 colordict = {
-    'Standard' : color_palette[1],
+    'Standard Code' : color_palette[1],
     'Colorado' : color_palette[5],
     'FF20' : color_palette[3],
     'FF16' : color_palette[2],
     'RED20' : color_palette[7],
-    'RED15' : color_palette[6],
-    'PROMISC20' : color_palette[9],
+    'RED15' : color_palette[9],
+    'PROMISC20' : color_palette[7],
     'PROMISC15' : color_palette[9]
 }
 # create mini dataframes
