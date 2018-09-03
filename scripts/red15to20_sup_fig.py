@@ -102,7 +102,7 @@ ax1 = sns.tsplot(
 logging.info("Formatting Sup Fig")
 sns.despine()
 plt.xlim([0, 1000])
-plt.ylim([-0.05, 0.5])
+plt.ylim([-0.05, 0.35])
 plt.legend()
 # plt.title('Hyper-evolvable', fontsize=labelsize)
 plt.xlabel('Time (in generations)')
@@ -131,6 +131,7 @@ filenames = [
         Delimiter='/'
     )['Contents']
 ]
+logging.info('Filenames: {0}'.format(filenames))
 # download competition simulations locally
 logging.info("Writing Batch Output Files Locally")
 pbar = tqdm(filenames[1:-1])
@@ -181,6 +182,13 @@ fig = plt.gcf()
 fig.set_size_inches(width, height)
 plt.legend()
 plt.show()
+# format plot
+logging.info("Formatting Sup Fig")
+sns.despine()
+plt.legend()
+# plt.title('Hyper-evolvable', fontsize=labelsize)
+plt.xlabel('Time (in generations)')
+plt.ylabel('Mean Fitness')
 
 figure_basename = 'redN_containment_prob.svg'
 figure_path = '/home/ubuntu/' + figure_basename
