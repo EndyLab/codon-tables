@@ -133,7 +133,7 @@ filenames = [
 ]
 # download competition simulations locally
 logging.info("Writing Batch Output Files Locally")
-pbar = tqdm(filenames[1:])
+pbar = tqdm(filenames[1:-1])
 local_filenames = []
 for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
