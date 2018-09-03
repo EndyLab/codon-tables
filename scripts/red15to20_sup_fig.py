@@ -123,7 +123,7 @@ success_string = (
 )
 logging.info(success_string)
 
-s3_path = 'manuscript/sup_figs/red15to20/replicates/'
+s3_path = 'manuscript/sup_figs/red15to20/contours/'
 filenames = [
     dict['Key'] for dict in s3.list_objects_v2(
         Bucket=bucketname,
