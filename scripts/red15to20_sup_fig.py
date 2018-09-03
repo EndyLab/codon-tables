@@ -44,7 +44,7 @@ plt.rc('axes', labelsize=labelsize)
 
 # set variables
 bucketname = 'endylab-codon-table-simulations'
-s3_path = 'manuscript/sup_figs/red15to20/'
+s3_path = 'manuscript/sup_figs/red15to20/replicates/'
 s3_region = 'us-west-1'
 
 # get pickle files and concatenate
@@ -59,7 +59,7 @@ filenames = [
 ]
 # download files locally
 logging.info("Writing Batch Output Files Locally")
-pbar = tqdm(filenames[1:7])
+pbar = tqdm(filenames[1:])
 local_filenames = []
 for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
@@ -123,9 +123,17 @@ success_string = (
 )
 logging.info(success_string)
 
+s3_path = 'manuscript/sup_figs/red15to20/replicates/'
+filenames = [
+    dict['Key'] for dict in s3.list_objects_v2(
+        Bucket=bucketname,
+        Prefix=s3_path,
+        Delimiter='/'
+    )['Contents']
+]
 # download competition simulations locally
 logging.info("Writing Batch Output Files Locally")
-pbar = tqdm(filenames[7:13])
+pbar = tqdm(filenames[1:])
 local_filenames = []
 for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
