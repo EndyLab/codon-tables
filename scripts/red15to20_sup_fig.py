@@ -85,7 +85,7 @@ DF = pd.concat(dfs, copy=False)
 logging.info("Plotting Sup Fig part 1: Mean Fitness Traces")
 colors = sns.cubehelix_palette(6, start=0, rot=1, reverse=False).as_hex()
 colordict = {}
-for i, color in enumerate(colors:
+for i, color in enumerate(colors):
     colordict['RED{0}'.format(15+i)] = color
 
 plt.figure()
