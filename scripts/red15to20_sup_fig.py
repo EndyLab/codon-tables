@@ -65,7 +65,7 @@ for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
     basepath = os.path.basename(s3_filename)
     local_filename = 'res/{0}'.format(basepath)
-    s3.download_file(bucketname, s3_filename, local_filename)
+    # s3.download_file(bucketname, s3_filename, local_filename)
     local_filenames.append(local_filename)
 logging.info("Download Successful!")
 
@@ -88,41 +88,41 @@ colordict = {}
 for i, color in enumerate(colors):
     colordict['RED{0}'.format(15+i)] = color
 
-plt.figure()
-ax1 = sns.tsplot(
-    data=DF,
-    time='time',
-    value='fitness',
-    unit='sim',
-    condition='code',
-    color=colordict,
-    ci='sd'
-)
-# format plot
-logging.info("Formatting Sup Fig")
-sns.despine()
-plt.xlim([0, 1000])
-plt.ylim([-0.05, 0.35])
-plt.legend()
-# plt.title('Hyper-evolvable', fontsize=labelsize)
-plt.xlabel('Time (in generations)')
-plt.ylabel('Mean Fitness')
-
-# save output
-logging.info("Saving Figure to S3")
-figure_basename = 'redN_fitness_traces.svg'
-figure_path = '/home/ubuntu/' + figure_basename
-figure_s3path = s3_path + figure_basename
-plt.savefig(figure_path)
-with open(figure_path, 'rb') as data:
-    s3.upload_fileobj(data, bucketname, figure_s3path)
-success_string = (
-    "Success! Figure saved to {0}:{1}. ".format(bucketname, figure_s3path)
-    + "Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'".format(s3_region)
-    + " to see output figure file."
-)
-logging.info(success_string)
-
+# plt.figure()
+# ax1 = sns.tsplot(
+#     data=DF,
+#     time='time',
+#     value='fitness',
+#     unit='sim',
+#     condition='code',
+#     color=colordict,
+#     ci='sd'
+# )
+# # format plot
+# logging.info("Formatting Sup Fig")
+# sns.despine()
+# plt.xlim([0, 1000])
+# plt.ylim([-0.05, 0.35])
+# plt.legend()
+# # plt.title('Hyper-evolvable', fontsize=labelsize)
+# plt.xlabel('Time (in generations)')
+# plt.ylabel('Mean Fitness')
+#
+# # save output
+# logging.info("Saving Figure to S3")
+# figure_basename = 'redN_fitness_traces.svg'
+# figure_path = '/home/ubuntu/' + figure_basename
+# figure_s3path = s3_path + figure_basename
+# plt.savefig(figure_path)
+# with open(figure_path, 'rb') as data:
+#     s3.upload_fileobj(data, bucketname, figure_s3path)
+# success_string = (
+#     "Success! Figure saved to {0}:{1}. ".format(bucketname, figure_s3path)
+#     + "Check 'https://s3.console.aws.amazon.com/s3/home?region={0}'".format(s3_region)
+#     + " to see output figure file."
+# )
+# logging.info(success_string)
+#
 s3_path = 'manuscript/sup_figs/red15to20/contours/'
 filenames = [
     dict['Key'] for dict in s3.list_objects_v2(
@@ -131,7 +131,6 @@ filenames = [
         Delimiter='/'
     )['Contents']
 ]
-logging.info('Filenames: {0}'.format(filenames))
 # download competition simulations locally
 logging.info("Writing Batch Output Files Locally")
 pbar = tqdm(filenames[1:-1])
@@ -140,7 +139,7 @@ for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
     basepath = os.path.basename(s3_filename)
     local_filename = 'res/{0}'.format(basepath)
-    s3.download_file(bucketname, s3_filename, local_filename)
+    # s3.download_file(bucketname, s3_filename, local_filename)
     local_filenames.append(local_filename)
 logging.info("Download Successful!")
 
@@ -155,9 +154,11 @@ for file in pbar:
 logging.info("Concatenating Dataframes")
 DF = pd.concat(dfs, copy=False)
 
+
 # massage dataframes into proper format
 N_0 = list(set(DF.loc[DF['code'] == 'RED20']['N_0']))
 N_0.sort()
+print(N_0)
 num_reps = len(DF.loc[(DF['N_0']== N_0[0]) & (DF['code'] == 'RED20')])
 codes = [code for code in colordict.keys()]
 for code in tqdm(codes, desc='codes'):
@@ -167,7 +168,6 @@ for code in tqdm(codes, desc='codes'):
 
 DF.loc[:,'popfrac'] = (DF.loc[:,'popfrac'] == 0)
 DF.loc[:,'N_0'] /= 1e6
-# extract dataframe for figure 5
 logging.info("Plotting Containment Traces")
 
 # plot solid and dashed tsplots
