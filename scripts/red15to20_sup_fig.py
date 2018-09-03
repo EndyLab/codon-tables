@@ -155,7 +155,7 @@ logging.info("Concatenating Dataframes")
 DF = pd.concat(dfs, copy=False)
 
 # massage dataframes into proper format
-N_0 = list(set(DF.loc[DF['code'] == 'Standard']['N_0']))
+N_0 = list(set(DF.loc[DF['code'] == 'RED20']['N_0']))
 N_0.sort()
 num_reps = len(DF.loc[(DF['N_0']== N_0[0]) & (DF['code'] == 'Standard')])
 codes = [code for code in colordict.keys()]
