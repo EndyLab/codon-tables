@@ -190,7 +190,7 @@ plt.legend()
 plt.xlabel('Time (in generations)')
 plt.ylabel('Mean Fitness')
 
-figure_basename = 'redN_containment_prob.svg'
+figure_basename = 'promiscN_containment_prob.svg'
 figure_path = '/home/ubuntu/' + figure_basename
 figure_s3path = s3_path + figure_basename
 plt.savefig(figure_path)
