@@ -173,6 +173,7 @@ DF.loc[:,'N_0'] /= 1e6
 logging.info("Plotting Containment Traces")
 
 # plot solid and dashed tsplots
+plt.figure()
 sns.tsplot(data=DF, time='N_0', value='popfrac', unit='sim', condition='code', err_style='boot_traces', n_boot=100, color=colordict)
 
 # format plot
