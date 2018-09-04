@@ -36,8 +36,8 @@ sns.set_style('ticks')
 # define plotting parameters
 figure_param = {
     'labelsize':16,
-	'width':4,
-    'height' : width / 1.618,
+	'width': 4,
+    'height' : 4 / 1.618,
     'font':'serif'
 }
 
