@@ -13,7 +13,7 @@ from copy import deepcopy as copy
 
 # set S3 variables
 bucketname = 'endylab-codon-table-simulations'
-s3_path = 'manuscript/data/contours'
+s3_path = 'manuscript/data/contours/'
 s3_region = 'us-west-1'
 s3 = boto3.client('s3', region_name=s3_region)
 filenames = [
