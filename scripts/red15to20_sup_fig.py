@@ -184,13 +184,6 @@ fig = plt.gcf()
 fig.set_size_inches(width, height)
 plt.legend()
 plt.show()
-# format plot
-logging.info("Formatting Sup Fig")
-sns.despine()
-plt.legend()
-# plt.title('Hyper-evolvable', fontsize=labelsize)
-plt.xlabel('Time (in generations)')
-plt.ylabel('Mean Fitness')
 
 figure_basename = 'redN_containment_prob.svg'
 figure_path = '/home/ubuntu/' + figure_basename

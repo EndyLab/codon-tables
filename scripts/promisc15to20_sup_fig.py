@@ -104,6 +104,8 @@ sns.despine()
 plt.xlim([0, 1000])
 plt.ylim([-0.05, 0.7])
 plt.legend()
+fig = plt.gcf()
+fig.set_size_inches(width, height)
 # plt.title('Hyper-evolvable', fontsize=labelsize)
 plt.xlabel('Time (in generations)')
 plt.ylabel('Mean Fitness')
@@ -181,13 +183,6 @@ fig = plt.gcf()
 fig.set_size_inches(width, height)
 plt.legend()
 plt.show()
-# format plot
-logging.info("Formatting Sup Fig")
-sns.despine()
-plt.legend()
-# plt.title('Hyper-evolvable', fontsize=labelsize)
-plt.xlabel('Time (in generations)')
-plt.ylabel('Mean Fitness')
 
 figure_basename = 'promiscN_containment_prob.svg'
 figure_path = '/home/ubuntu/' + figure_basename
