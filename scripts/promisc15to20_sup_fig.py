@@ -160,7 +160,6 @@ N_0 = list(set(DF.loc[DF['code'] == 'PROMISC20']['N_0']))
 N_0.sort()
 num_reps = len(DF.loc[(DF['N_0']== N_0[0]) & (DF['code'] == 'PROMISC20')])
 codes = [code for code in colordict.keys()]
-import ipdb; ipdb.set_trace()
 for code in tqdm(codes, desc='codes'):
     logging.info("Processing Data for {0}".format(code))
     for n_0 in tqdm(N_0, desc='initial conditions'):
