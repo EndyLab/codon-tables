@@ -15,6 +15,7 @@ from copy import deepcopy as copy
 bucketname = 'endylab-codon-table-simulations'
 s3_path = 'manuscript/data/contours'
 s3_region = 'us-west-1'
+s3 = boto3.client('s3', region_name=s3_region)
 filenames = [
     dict['Key'] for dict in s3.list_objects_v2(
         Bucket=bucketname,
@@ -30,7 +31,7 @@ for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
     basepath = os.path.basename(s3_filename)
     local_filename = 'res/{0}'.format(basepath)
-    # s3.download_file(bucketname, s3_filename, local_filename)
+    s3.download_file(bucketname, s3_filename, local_filename)
     local_filenames.append(local_filename)
 logging.info("Download Successful!")
 
