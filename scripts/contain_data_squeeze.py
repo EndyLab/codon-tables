@@ -52,7 +52,6 @@ N_0 = list(set(DF.loc[DF['code'] == 'RED20']['N_0']))
 N_0.sort()
 print(N_0)
 num_reps = len(DF.loc[(DF['N_0']== N_0[0]) & (DF['code'] == 'RED20')])
-import ipdb; ipdb.set_trace()
 codes = set(DF['code'])
 for code in tqdm(codes, desc='codes'):
     logging.info("Processing Data for {0}".format(code))
