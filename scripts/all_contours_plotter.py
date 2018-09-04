@@ -128,17 +128,8 @@ codes = set(DF['code'])
 for code in tqdm(codes, desc='Plotting Codes'):
     # plot and format
     logging.info("Plotting Contours: {0}".format(code))
-    # contour_plotter(DF, code, path, figure_param)
+    contour_plotter(DF, code, path, figure_param)
     # upload to s3
-    figure_basename = '{0}_contour_lines.svg'.format(code)
-    figure_path = path + figure_basename
-    figure_s3path = s3_path + figure_basename
-    # testing save functionality
-    plt.figure()
-    x = np.linspace(0,1,1000)
-    y = x**2
-    plt.plot(x, y)
-    plt.savefig(figure_path)
     logging.info("Uploading Plot: {0}".format(code))
     with open(figure_path, 'rb') as data:
         s3.upload_fileobj(data, bucketname, figure_s3path)
