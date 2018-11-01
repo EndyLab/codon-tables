@@ -36,7 +36,7 @@ sns.set_style('ticks')
 
 # set variables
 bucketname = 'endylab-codon-table-simulations'
-s3_path = 'manuscript/fig3b/'
+s3_path = 'BIOE_Retreat/giffify/'
 s3_region = 'us-west-1'
 
 # get pickle files and concatenate
@@ -73,7 +73,7 @@ logging.info("Concatenating Dataframes")
 DF = pd.concat(dfs, copy=False)
 
 # extract dataframe for figure 3
-wanted_codes = ['Colorado', 'Standard Code', 'FF20']
+wanted_codes = ['Standabd Code', 'FF20']
 f = lambda code: code in wanted_codes
 DF_3b = DF.loc[DF['code'].map(f)]
 
