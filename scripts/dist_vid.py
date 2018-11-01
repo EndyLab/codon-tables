@@ -36,7 +36,7 @@ sns.set_style('ticks')
 
 # set variables
 bucketname = 'endylab-codon-table-simulations'
-s3_path = 'BIOE_Retreat/giffify/'
+s3_path = 'BIOE_retreat/giffify/'
 s3_region = 'us-west-1'
 
 # get pickle files and concatenate
@@ -51,7 +51,7 @@ filenames = [
 ]
 # download files locally
 logging.info("Writing Batch Output Files Locally")
-pbar = tqdm(filenames[1:7])
+pbar = tqdm(filenames[1:3])
 local_filenames = []
 for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
@@ -72,10 +72,8 @@ for file in pbar:
 logging.info("Concatenating Dataframes")
 DF = pd.concat(dfs, copy=False)
 
-# extract dataframe for figure 3
-wanted_codes = ['Standabd Code', 'FF20']
-f = lambda code: code in wanted_codes
-DF_3b = DF.loc[DF['code'].map(f)]
+# rename FF20 --> fail safe
+DF.loc[DF['code'] == 'FF20', 'code'] = 'Fail-Safe'
 
 ##############################################
 # Sup Video: Distribution Evolving Over Time #
@@ -87,11 +85,10 @@ fig = plt.figure()
 ax = plt.axes(xlim=(0, 1.6))
 
 # define general parameters
-sims = set(DF_3b['sim'])
-codes = set(DF_3b['code'])
+sims = set(DF['sim'])
+codes = set(DF['code'])
 colordict = {
-    'Colorado' : 'red',
-    'Standard Code' : 'blue',
+    'Standard Code' : 'black',
     'FF20': 'green'
 }
 
@@ -99,7 +96,7 @@ colordict = {
 fps = 30
 bumper = 30
 skip = 20
-frames = int( (len(DF_3b.loc[(DF_3b['code'] == 'FF20') & (DF_3b['sim'] == 1)]['time']) - bumper) / skip )
+frames = int( (len(DF.loc[(DF['code'] == 'FF20') & (DF['sim'] == 1)]['time']) - bumper) / skip )
 dpi = 100
 
 def framer(nFrame):
@@ -107,12 +104,12 @@ def framer(nFrame):
     # adjust frame with offset
     framenum = int((nFrame*skip) + bumper - 1)
     # get current fitness from simulations
-    data = DF_3b.loc[framenum]
+    data = DF.loc[framenum]
 
     # plot distribution
     for code in codes:
-        ax = sns.distplot(data.loc[data['code'] == code]['fitness'], kde=True, hist=True, rug=False, norm_hist=True, color=colordict[code], label=code)
-    plt.xlim([0,1.6])
+        ax = sns.distplot(data.loc[data['code'] == code]['fitness'], kde=True, hist=True, rug=True, norm_hist=True, color=colordict[code], label=code)
+    plt.xlim([0,1.4])
     plt.yticks(visible=False)
     sns.despine(left=True)
     ax.axes.get_yaxis().set_visible(False)
@@ -127,7 +124,7 @@ def framer(nFrame):
 
 
 anim = animation.FuncAnimation(fig, framer, frames=frames)
-figure_basename = 'test_vid.gif'
+figure_basename = 'distribution.gif'
 figure_path = '/home/ubuntu/' + figure_basename
 figure_s3path = s3_path + figure_basename
 anim.save(figure_path, writer='imagemagick', dpi=dpi, fps=fps);
