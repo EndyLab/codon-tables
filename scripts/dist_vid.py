@@ -82,21 +82,21 @@ DF.loc[DF['code'] == 'FF20', 'code'] = 'Fail-Safe'
 logging.info("Creating Movie")
 # First set up the figure, the axis, and the plot element we want to animate
 fig = plt.figure()
-ax = plt.axes(xlim=(0, 1.6))
+ax = plt.axes(xlim=(0, 1.4))
 
 # define general parameters
 sims = set(DF['sim'])
 codes = set(DF['code'])
 colordict = {
     'Standard Code' : 'black',
-    'FF20': 'green'
+    'Fail-Safe': 'green'
 }
 
 # define video parameters
 fps = 30
 bumper = 30
 skip = 20
-frames = int( (len(DF.loc[(DF['code'] == 'FF20') & (DF['sim'] == 1)]['time']) - bumper) / skip )
+frames = int( (len(DF.loc[(DF['code'] == 'Fail-Safe') & (DF['sim'] == 1)]['time']) - bumper) / skip )
 dpi = 100
 
 def framer(nFrame):
