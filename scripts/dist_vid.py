@@ -100,7 +100,7 @@ frames = int( (len(DF.loc[(DF['code'] == 'Fail-Safe') & (DF['sim'] == 1)]['time'
 dpi = 100
 
 def framer(nFrame):
-    logging.info("Working on frame number {0}".format(nFrame))
+    logging.info("Working on frame number {0}/{1}".format(nFrame, frames))
     plt.cla()
     # adjust frame with offset
     framenum = int((nFrame*skip) + bumper - 1)
