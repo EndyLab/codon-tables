@@ -57,7 +57,7 @@ for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
     basepath = os.path.basename(s3_filename)
     local_filename = 'res/{0}'.format(basepath)
-    # s3.download_file(bucketname, s3_filename, local_filename)
+    s3.download_file(bucketname, s3_filename, local_filename)
     local_filenames.append(local_filename)
 logging.info("Download Successful!")
 
@@ -100,6 +100,7 @@ frames = int( (len(DF.loc[(DF['code'] == 'Fail-Safe') & (DF['sim'] == 1)]['time'
 dpi = 100
 
 def framer(nFrame):
+    logging.info("Working on frame number {0}".format(nFrame))
     plt.cla()
     # adjust frame with offset
     framenum = int((nFrame*skip) + bumper - 1)
