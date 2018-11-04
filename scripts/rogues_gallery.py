@@ -121,9 +121,6 @@ plt.legend()
 plt.xlabel('Time (in generations)')
 plt.ylabel('Mean Fitness')
 
-for l in ax1.ax.lines:
-    print(l.get_linewidth())
-    plt.setp(l,linewidth=3)
 # save output
 logging.info("Saving Figure 3B to S3")
 figure_basename = '3b_vector.svg'
