@@ -94,12 +94,12 @@ DF_3b = DF
 logging.info("Plotting 3B: Mean Fitness Traces")
 colors = sns.cubehelix_palette(6, start=0, rot=1, reverse=False).as_hex()
 colordict = {
-    'Standard Code' : colors[0],
+    'Standard Code' : colors[5],
     'FF20' : colors[2],
     'FF16' : colors[3],
-    'RED20' : colors[1],
-    'RED15' : colors[4],
-    'FFQUAD' : colors[5]
+    'RED20' : colors[4],
+    'RED15' : colors[1],
+    'FFQUAD' : colors[0]
 }
 plt.figure()
 ax1 = sns.tsplot(
