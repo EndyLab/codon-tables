@@ -92,7 +92,7 @@ DF = pd.concat(dfs, copy=False)
 
 DF_3b = DF
 logging.info("Plotting 3B: Mean Fitness Traces")
-colors = sns.palplot(sns.cubehelix_palette(6, start=0, rot=1, reverse=False)).as_hex()
+colors = sns.cubehelix_palette(6, start=0, rot=1, reverse=False).as_hex()
 colordict = {
     'Standard Code' : colors[0],
     'FF20' : colors[2],
