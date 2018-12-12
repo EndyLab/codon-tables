@@ -23,6 +23,8 @@ class utils:
     - dict standardTable: a dict representing the Standard Table
     - dict coloradoTable: a dict representing the optimized code from Pines et
         al 2017
+    - dict RED20: a dict representing RED20
+    - dict RED15: a dict representing RED15
     - list(str) dNTPs: a list of strings representing the DNA NTPs
     - list(str) rNTPs: a list of strings representing the RNA NTPs
     - list(str) tripletCodons: a list of string representing the set of rNTP
@@ -59,6 +61,11 @@ class utils:
      PRS, kdHydrophobicity, Gilis, SCV,
      unrestrictedBlock, standardBlock, naturalBlock,
      basepairWC, wobbleWC, coloradoTable] = unPickled
+    # unpickle RED15 and RED20 tables
+    with open(path+'/res/RED20.pickle', 'rb') as handle:
+         RED20 = pickle.load(handle)
+    with open(path+'/res/RED15.pickle', 'rb') as handle:
+         RED15 = pickle.load(handle)
 
     @staticmethod
     def getAAcounts(table):
@@ -146,6 +153,40 @@ class utils:
         # this is a one liner, but a tad obfuscated. Checks to see if each codon encodes for only one AA (thus is type str).
         # returns true if any of the elements are not strings
         return sum(type(AA) != str for AA in table.values()) > 0
+
+    @staticmethod
+    def isOneToOne(table):
+        '''A staticmethod that takes a codon table as a dictionary and returns
+            True if it represents a One-To-One genetic code and False otherwise.
+
+            A one-to-one code is defined as a code in which every amino acid is
+            represented with exactly one codon. This defines an unambiguous
+            mapping of protein sequence to corresponding DNA sequence.
+
+        Parameters
+        ----------
+        dict table: a python dict representing the codon table
+
+        Returns
+        -------
+        bool one2one: boolean; True if One-To-One, and False otherwise
+        '''
+        # declare storage dict to count amino acid number
+        aa_set = set(utils.standardTable.values())
+        aa_counts = {aa:0 for aa in aa_set}
+        # count number of amino acids
+        for aa in table.values():
+            aa_counts[aa] += 1
+        # iterate through dictionary and check counts
+        one2one = True
+        for aa, count in aa_counts.items():
+            #skip stop signal:
+            if aa == '*':
+                continue
+            elif count > 1:
+                one2one = False
+                break
+        return one2one
 
     @staticmethod
     def getCodonConnectivity(table):

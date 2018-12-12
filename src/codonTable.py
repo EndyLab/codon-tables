@@ -30,9 +30,19 @@ class codonTable:
         -------
         codonTable obj: returns a codonTable object
         '''
-        # optionally generate a random table
-        if table == 'random':
-            table = utils.randomTable()
+        # optionally generate a random table, or load a preset table
+        if type(table) == str:
+            table_options = {
+                'STANDARD':utils.standardTable,
+                'COLORADO':utils.coloradoTable,
+                'RED20':utils.RED20,
+                'RED15':utils.RED15,
+                'RANDOM':utils.randomTable()
+            }
+            try:
+                table = table_options[table.upper()]
+            except:
+                raise ValueError('Table string not recognized. Use one of the following options: {0}'.format(set(table_options.keys())))
         # default to standard table if not specified or wrong datatype
         elif table == None or not type(table) == dict:
             table = utils.standardTable
@@ -45,12 +55,16 @@ class codonTable:
         # determine table ambiguity
         ambiguous = utils.isPromiscuous(table)
 
+        # determine if table is one-to=one
+        oneToOne = utils.isOneToOne(table)
+
         # Assign assign instance attributes
         self.utils = utils
         self.ordering = ordering
         self.codonDict = table
         self.codonTable = self.dictToTable(table)
         self.ambiguous = ambiguous
+        self.oneToOne = oneToOne
         # assign attributes for unambiguous tables
         if not ambiguous:
             self.codonGraph = self.dictToGraph(table, norm)
@@ -519,8 +533,34 @@ class codonTable:
             cmap = LSC.from_list('Upper Half', colors)
         return cmap
 
+    def reverseTranslate(self, prot_seq, stop_codon='UGA'):
+        '''a method used to translate a given protein sequence, assuming the
+        codon table is one-to-one. Raises an error otherwise
+
+        Parameters
+        ----------
+        - str prot_seq: string representing amino acid sequence to translate
+        - str stop_codon: stop codon to use for GOI (default to UGA)
+
+        Returns
+        -------
+        str gene: string representing translated amino acid sequence
+        '''
+        # handle error if table is not one-to-one
+        if not self.oneToOne:
+            raise TypeError('Cannot translate sequence. Codon table is not One-To-One')
+        # otherwise, create reverse translation dictionary
+        rev_dict = {aa:codon for codon, aa in self.codonDict.items()}
+        rev_dict['*'] = stop_codon
+        # translate gene and return
+        gene = ''
+        for aa in prot_seq:
+            gene += rev_dict[aa]
+        return gene
+
 ### Test script
 if __name__ == '__main__':
-    test = codonTable()
-    #fig = test.plot3d('Standard Codon Table', 'blue', 'Kyte-Doolittle Hydropathy')
-    fig2 = test.plotGraph('Standard Codon Table: Node Size=Residue Degeneracy', nodeSize='count', nodeColor='kd', ctitle='Kyte-Doolittle Hydropathy')
+    test = codonTable('RED20')
+    test_peptide = 'GAGVYRK*'
+    gene = test.reverseTranslate(test_peptide)
+    print('Reverse Translated Gene {0}'.format(gene))
