@@ -1,4 +1,4 @@
-#, import necessary modules
+# import necessary modules
 import numpy as np
 import pandas as pd
 from matplotlib import cm
