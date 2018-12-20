@@ -18,7 +18,7 @@ red15['UGG'] = 'W'
 red15['CGU'] = 'R'
 red15['GGA'] = 'G'
 
-red20 = copy.deepcopy(RED15)
+red20 = copy.deepcopy(red15)
 red20['AUC'] = 'I'
 red20['CAC'] = 'H'
 red20['AAC'] = 'N'
