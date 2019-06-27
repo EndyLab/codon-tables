@@ -36,8 +36,11 @@ class strain():
         elif type(table) == dict:
             table = codonTable(table=table)
         elif type(table) == str:
-            try:
+            if table == 'STANDARD':
+                code = 'Standard Code'
+            else:
                 code = table
+            try:
                 table = codonTable(table=table)
             except ValueError:
                 print('Input table not in presets. Specify codes other than presets with python dict.')
