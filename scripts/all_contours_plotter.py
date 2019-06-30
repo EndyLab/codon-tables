@@ -79,6 +79,10 @@ for file in pbar:
 logging.info("Concatenating Dataframes")
 DF = pd.concat(dfs, copy=False)
 
+# repackage data
+with open('res/lin_contour_concat.pickle', 'wb') as handle:
+    pickle.dump(DF, handle)
+
 # define useful helper functions
 def contain_probability(DF, code):
     df = DF.loc[DF['code'] == code]
