@@ -64,7 +64,7 @@ for s3_filename in pbar:
     pbar.set_description('Saving {0}'.format(s3_filename))
     basepath = os.path.basename(s3_filename)
     local_filename = 'res/{0}'.format(basepath)
-    s3.download_file(bucketname, s3_filename, local_filename)
+    # s3.download_file(bucketname, s3_filename, local_filename)
     local_filenames.append(local_filename)
 logging.info("Download Successful!")
 
@@ -81,11 +81,13 @@ DF = pd.concat(dfs, copy=False)
 
 # repackage data
 concat_file = 'lin_contour_concat.pickle'
+logging.info("Pickling Dataframes")
 with open('res/'+ concat_file, 'wb') as handle:
     pickle.dump(DF, handle)
 logging.info("Uploading concatenated datafile")
-with open('res/'+outfile, 'rb') as data:
+with open('res/'+concat_file, 'rb') as data:
     s3.upload_fileobj(data, bucketname, s3_path+concat_file)
+logging.info("Success!")
 # # define useful helper functions
 # def contain_probability(DF, code):
 #     df = DF.loc[DF['code'] == code]
