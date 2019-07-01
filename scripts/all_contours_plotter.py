@@ -13,6 +13,8 @@ from scipy import stats
 from scipy.special import erfc
 from scipy.signal import gaussian
 from scipy.ndimage import convolve1d
+from sklearn.linear_model import LogisticRegression as logreg
+import statsmodels.api as sm
 import peakutils
 import pandas as pd
 import seaborn as sns
@@ -79,15 +81,50 @@ for file in pbar:
 logging.info("Concatenating Dataframes")
 DF = pd.concat(dfs, copy=False)
 
+# perform analysis and store in dict
+stats = {
+    column:[] for column in ['code', 'Intercept', 'SE_i', 'ci_i', 't_i', 'p_i',
+                             'Coef', 'SE_c', 'ci_c', 't_c', 'p_c', 'llr']
+}
+codes = [
+    'Standard', 'FF16', 'FF20', 'FFQUAD',
+    'RED15', 'RED20', 'PROMISC15', 'PROMISC20'
+]
+
+logging.info("Performing Statistics")
+for code in tqdm(codes, desc='Running Linear Regressions'):
+    df = DF.loc[DF['code'] == code]
+    endog = 1 - df['popfrac']
+    exog = sm.add_constant(df['N_0'])
+
+    logit = sm.Logit(endog, exog)
+    results = logit.fit_regularized(disp=False, alpha=3)
+
+    # populate stats dict
+    stats['code'].append(code)
+    stats['Intercept'].append(results.params.loc['const'])
+    stats['SE_i'].append(results.bse.loc['const'])
+    stats['ci_i'].append(tuple([x for x in results.conf_int().loc['const'].values]))
+    stats['t_i'].append(results.tvalues.loc['const'])
+    stats['p_i'].append(results.pvalues.loc['const'])
+    stats['Coef'].append(results.params.loc['N_0'])
+    stats['SE_c'].append(results.bse.loc['N_0'])
+    stats['ci_c'].append(tuple([x for x in results.conf_int().loc['N_0'].values]))
+    stats['t_c'].append(results.tvalues.loc['N_0'])
+    stats['p_c'].append(results.pvalues.loc['N_0'])
+    stats['llr'].append(results.llr)
+
+# package statistics into a dataframe
+data = pd.DataFrame.from_dict(stats)
+data.set_index('code')
+outfile = 'logistic_regressions.csv'
+data.to_csv('res/'+outfile)
+
 # repackage data
-concat_file = 'lin_contour_concat.pickle'
-logging.info("Pickling Dataframes")
-with open('res/'+ concat_file, 'wb') as handle:
-    pickle.dump(DF, handle, protocol=4)
-logging.info("Uploading concatenated datafile")
-with open('res/'+concat_file, 'rb') as data:
-    s3.upload_fileobj(data, bucketname, s3_path+concat_file)
-logging.info("Success! Concatenated datafile uploaded")
+logging.info("Uploading Statistics .csv file")
+with open('res/'+outfile, 'rb') as data:
+    s3.upload_fileobj(data, bucketname, s3_path+outfile)
+logging.info("Success!")
 
 # # define useful helper functions
 # def contain_probability(DF, code):
