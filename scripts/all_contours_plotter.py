@@ -83,7 +83,7 @@ DF = pd.concat(dfs, copy=False)
 concat_file = 'lin_contour_concat.pickle'
 logging.info("Pickling Dataframes")
 with open('res/'+ concat_file, 'wb') as handle:
-    pickle.dump(DF, handle)
+    pickle.dump(DF, handle, protocol=4)
 logging.info("Uploading concatenated datafile")
 with open('res/'+concat_file, 'rb') as data:
     s3.upload_fileobj(data, bucketname, s3_path+concat_file)
