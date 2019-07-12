@@ -43,6 +43,7 @@ kdHydrophobicity = {
     'M' : 1.9,
     'A' : 1.8,
     '*' : 0, #stop codon's given neutral value for visualization
+    '0' : 0, #null codon's given neutral value for visualization
     'G' : -0.4,
     'T' : -0.7,
     'W' : -0.9,

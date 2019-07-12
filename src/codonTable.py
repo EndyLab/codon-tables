@@ -477,14 +477,20 @@ class codonTable:
         cbar.outline.set_visible(False)
         cbar.set_ticks([])
         cbar.set_label(ctitle)
-        # recolor stop codons to grey
-        stops = []
+        # recolor stop and null codons to white, grey, respectively
+        stops = []; nulls = [];
         for i, AA in enumerate(G.nodes()):
             if AA == '*':
                 stops.append(int(i))
+            elif AA == '0':
+                nulls.append(int(i))
         stops = np.array(stops, dtype=int)
+        nulls = np.array(nulls, dtype=int)
         nx.draw_networkx_nodes(G, positions,
             nodelist=['*'], node_size=node_size[stops[0]],
+            node_color='white')
+        nx.draw_networkx_nodes(G, positions,
+            nodelist=['0'], node_size=node_size[nulls[0]],
             node_color='grey')
         #format graph
         if title != "": plt.title(title)

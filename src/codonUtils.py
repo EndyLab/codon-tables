@@ -172,7 +172,7 @@ class utils:
         bool one2one: boolean; True if One-To-One, and False otherwise
         '''
         # declare storage dict to count amino acid number
-        aa_set = set(utils.standardTable.values())
+        aa_set = set(aa for aa in table.values())
         aa_counts = {aa:0 for aa in aa_set}
         # count number of amino acids
         for aa in table.values():
@@ -180,8 +180,8 @@ class utils:
         # iterate through dictionary and check counts
         one2one = True
         for aa, count in aa_counts.items():
-            #skip stop signal:
-            if aa == '*':
+            #skip stop and null signals:
+            if aa in {'*', '0'}:
                 continue
             elif count > 1:
                 one2one = False
