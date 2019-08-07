@@ -13,7 +13,6 @@ from scipy import stats
 from scipy.special import erfc
 from scipy.signal import gaussian
 from scipy.ndimage import convolve1d
-from sklearn.linear_model import LogisticRegression as logreg
 import statsmodels.api as sm
 import peakutils
 import pandas as pd
