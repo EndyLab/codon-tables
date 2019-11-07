@@ -6,7 +6,7 @@ All code is written in Python 3.5. Below is a brief description of the modules a
 ## codonUtils
 A module used to package general purpose data and methods for codon table manipulation and representation (e.g. list of dNTPs, list of triplet codons, Polar Requirement Scale, block structure of the standard table, method for getting amino acid degeneracy, etc.). Import as follows:
 ```python
-from codonUtils import utils
+from src.codonUtils import utils
 help(utils)
 ```
 ## codonTable
@@ -19,7 +19,7 @@ help(codonTable)
 ## codonOptimizer
 A class used to handle codon table space search and optimization. Includes definitions for cost functions as well as MCMC style optimization algorithm(s). Import as follows:
 ```python
-from codonOptimizer import tableOptimizer
+from src.codonOptimizer import tableOptimizer
 help(tableOptimizer)
 ```
 
