@@ -1,7 +1,7 @@
 # codon-tables
 Code relating to arbitrary DNA decoding and codon table representation, visualization and optimization.
 
-All code is written in Python 3.5. Below is a brief description of the modules and Jupyter Notebooks included with this repo.
+All code is written in Python 3.7. If you are interested in seeing how work relating to the NAR publication was done, please check out the directory "extra". If you are interested in using the software as a package, checkout the directory "codes".
 
 ## codonUtils
 A module used to package general purpose data and methods for codon table manipulation and representation (e.g. list of dNTPs, list of triplet codons, Polar Requirement Scale, block structure of the standard table, method for getting amino acid degeneracy, etc.). Import as follows:

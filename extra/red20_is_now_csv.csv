@@ -1,0 +1,17 @@
+,,U,C,A,G
+U,U,UUU : *,UCU : *,UAU : *,UGU : *
+U,C,UUC : F,UCC : *,UAC : Y,UGC : C
+U,A,UUA : *,UCA : S,UAA : *,UGA : *
+U,G,UUG : *,UCG : *,UAG : *,UGG : W
+C,U,CUU : *,CCU : *,CAU : *,CGU : R
+C,C,CUC : *,CCC : *,CAC : H,CGC : *
+C,A,CUA : L,CCA : *,CAA : *,CGA : *
+C,G,CUG : *,CCG : P,CAG : Q,CGG : *
+A,U,AUU : *,ACU : *,AAU : *,AGU : *
+A,C,AUC : I,ACC : T,AAC : N,AGC : *
+A,A,AUA : *,ACA : *,AAA : K,AGA : *
+A,G,AUG : M,ACG : *,AAG : *,AGG : *
+G,U,GUU : *,GCU : *,GAU : *,GGU : *
+G,C,GUC : V,GCC : *,GAC : D,GGC : *
+G,A,GUA : *,GCA : A,GAA : E,GGA : G
+G,G,GUG : *,GCG : *,GAG : *,GGG : *
