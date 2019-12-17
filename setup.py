@@ -11,5 +11,13 @@ setuptools.setup(
     description='Tools for engineering genetic codes.',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/EndyLab/CodonTables'
+    url='https://github.com/EndyLab/codon-tables/tree/package',
+    packages=setuptools.find_packages(),
+    classifiers=[
+        'Programming Language :: Python :: 3',
+        'Licence :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+    ],
+    python_requires='>3.6',
+    package_data={'CodonTables':['res/*']}
 )
