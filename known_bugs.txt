@@ -1,2 +1,0 @@
-# CodonTable
-CodonTable.plot_graph(): line 493 - "IndexError: index 0 is out of bounds for axis 0 with size 0". This code only works when genetic codes necessarily have null codons. I need to maket his work for Standard Code too. ALSO: check to see if red20, red15, fs20 and fs16 use null codons (like in the manuscript), or treat null codons as stops (like in previous work)

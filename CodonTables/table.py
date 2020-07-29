@@ -9,9 +9,11 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import networkx as nx
 from CodonTables.utils import utils
 
+
 class CodonTable:
     ''' A class used to handle codon table objects.
     '''
+
     def __init__(self, table=None, ordering=None, norm=True):
         '''Automatically loads object with a CodonTable and a
         comparison function between amino acids "ordering". bool norm is used
@@ -33,16 +35,17 @@ class CodonTable:
         # optionally generate a random table, or load a preset table
         if type(table) == str:
             table_options = {
-                'STANDARD':utils.standard_table,
-                'COLORADO':utils.colorado_table,
-                'RED20':utils.RED20,
-                'RED15':utils.RED15,
-                'RANDOM':utils.random_table()
+                'STANDARD': utils.standard_table,
+                'COLORADO': utils.colorado_table,
+                'RED20': utils.RED20,
+                'RED15': utils.RED15,
+                'RANDOM': utils.random_table()
             }
             try:
                 table = table_options[table.upper()]
             except:
-                raise ValueError('Table string not recognized. Use one of the following options: {0}'.format(set(table_options.keys())))
+                raise ValueError('Table string not recognized. Use one of the following options: {0}'.format(
+                    set(table_options.keys())))
         # default to standard table if not specified or wrong datatype
         elif table == None or not type(table) == dict:
             table = utils.standard_table
@@ -106,7 +109,7 @@ class CodonTable:
         determines whether to return the absolute value of self.ordering[AA] or
         the amino acid's relative index when ordered.
         '''
-            # extract value to store
+        # extract value to store
         if norm == True:
             # use AA order instead of absolute metric value
             order = self.sort_ordering()
@@ -132,14 +135,14 @@ class CodonTable:
         -------
         np.array Borg: a 4x4x4 np.array representing the codon table in 3D
         '''
-            # declare Borg cube
-        Borg = np.zeros([4,4,4])
+        # declare Borg cube
+        Borg = np.zeros([4, 4, 4])
         # define coordinate mappings for codon nt
         codon_to_int = {
-            'A' : 0,
-            'U' : 1,
-            'C' : 2,
-            'G' : 3,
+            'A': 0,
+            'U': 1,
+            'C': 2,
+            'G': 3,
         }
         # loop over codon_table items
         for codon, AA in self.codon_dict.items():
@@ -177,17 +180,17 @@ class CodonTable:
         stops = []
         # define coordinate mappings for codon nt
         codon_to_int = {
-            'U' : 0,
-            'C' : 1,
-            'A' : 2,
-            'G' : 3,
+            'U': 0,
+            'C': 1,
+            'A': 2,
+            'G': 3,
         }
         # loop over codon_table items
         for i, (codon, AA) in enumerate(self.codon_dict.items()):
             # package stop codons separately into a list of tuples
             if AA == '*':
                 pos = (codon_to_int[codon[0]], codon_to_int[codon[1]],
-                    codon_to_int[codon[2]])
+                       codon_to_int[codon[2]])
                 stops.append(pos)
                 continue
             # extract x, y and z values
@@ -232,7 +235,7 @@ class CodonTable:
             subtables = {}
             for suffix in suffixes:
                 subdict = {
-                    codon:table[codon] for codon in table if codon[3:] == suffix
+                    codon: table[codon] for codon in table if codon[3:] == suffix
                 }
                 subtables[suffix] = subdict
                 df = self.dict_to_table(table=table, suffix=suffix)
@@ -340,7 +343,8 @@ class CodonTable:
         dimension = len(list(self.codon_dict)[0])
         if (dimension > 3):
             raise ValueError(
-                'Cannot plot 3d representation of {0}D genetic code'.format(dimension)
+                'Cannot plot 3d representation of {0}D genetic code'.format(
+                    dimension)
             )
         # call get_scatter_data to extract arrays from codon table
         xs, ys, zs, vals, stops = self.get_scatter_data(norm)
@@ -369,9 +373,9 @@ class CodonTable:
             xstop.append(x)
             ystop.append(y)
             zstop.append(z)
-        ax.scatter(xstop,ystop,zstop,s=1200,c='grey')
+        ax.scatter(xstop, ystop, zstop, s=1200, c='grey')
         # set axes labels and ticks
-        ticks = np.arange(0,4)
+        ticks = np.arange(0, 4)
         tick_labels = ['U', 'C', 'A', 'G']
 
         ax.set_xlabel('Position 1')
@@ -396,10 +400,10 @@ class CodonTable:
         return fig
 
     def plot_graph(self, title="", ctitle="",
-                    color='viridis', norm=True,
-                    node_size='count', node_color='kd',
-                    weighting_fxn=None,
-                    filename=None):
+                   color='viridis', norm=True,
+                   node_size='count', node_color='kd',
+                   weighting_fxn=None,
+                   filename=None):
         ''' Represents self.codon_dict as a network capturing the adjacency of
         the amino acids. Two amino acids are defined as adjacent if a codon
         representing AA_1 can be mutated to represent AA_2 without representing
@@ -456,10 +460,11 @@ class CodonTable:
             [edge['weight'] for (a1, a2, edge) in G.edges(data=True)]
         )
         # Optionally weigh edges nonlinearly for easier visualization
-        if weighting_fxn != None:
+        if weighting_fxn is not None:
             weights = weighting_fxn(weights)
         weights /= np.mean(weights)
-        node_size = [data[node_size]*200 for (node, data) in G.nodes(data=True)]
+        node_size = [data[node_size]
+                     * 200 for (node, data) in G.nodes(data=True)]
         node_color = np.array(
             [data[node_color] for (node, data) in G.nodes(data=True)]
         ).ravel()
@@ -469,7 +474,7 @@ class CodonTable:
         fig = plt.figure()
         plt.axis('off')
         nodes = nx.draw_networkx_nodes(G, positions, cmap=cmap,
-                node_color=node_color, node_size=node_size)
+                                       node_color=node_color, node_size=node_size)
         edges = nx.draw_networkx_edges(G, positions, width=weights)
         labels = nx.draw_networkx_labels(G, positions)
         # plot colorbar
@@ -478,7 +483,8 @@ class CodonTable:
         cbar.set_ticks([])
         cbar.set_label(ctitle)
         # recolor stop and null codons to white, grey, respectively
-        stops = []; nulls = [];
+        stops = []
+        nulls = []
         for i, AA in enumerate(G.nodes()):
             if AA == '*':
                 stops.append(int(i))
@@ -487,15 +493,18 @@ class CodonTable:
         stops = np.array(stops, dtype=int)
         nulls = np.array(nulls, dtype=int)
         nx.draw_networkx_nodes(G, positions,
-            nodelist=['*'], node_size=node_size[stops[0]],
-            node_color='white')
-        nx.draw_networkx_nodes(G, positions,
-            nodelist=['0'], node_size=node_size[nulls[0]],
-            node_color='grey')
+                               nodelist=['*'], node_size=node_size[stops[0]],
+                               node_color='white')
+        if len(nulls) > 0:
+            nx.draw_networkx_nodes(G, positions,
+                                   nodelist=['0'], node_size=node_size[nulls[0]],
+                                   node_color='grey')
         #format graph
-        if title != "": plt.title(title)
+        if title != "":
+            plt.title(title)
         # optionally save figure
-        if type(filename) == str: plt.savefig(filename)
+        if type(filename) == str:
+            plt.savefig(filename)
         plt.show()
         return fig
 
@@ -523,12 +532,12 @@ class CodonTable:
         '''
         # pick colormap from options
         options = {
-            'red' : cm.Reds,
-            'blue' : cm.Blues,
-            'green' : cm.Greens,
-            'purple' : cm.Purples,
-            'grey' : cm.Greys,
-            'viridis' : cm.viridis
+            'red': cm.Reds,
+            'blue': cm.Blues,
+            'green': cm.Greens,
+            'purple': cm.Purples,
+            'grey': cm.Greys,
+            'viridis': cm.viridis
         }
         cmap = options[color]
         # optionally clip colormap
@@ -554,9 +563,10 @@ class CodonTable:
         '''
         # handle error if table is not one-to-one
         if not self.one_to_one:
-            raise TypeError('Cannot translate sequence. Codon table is not One-To-One')
+            raise TypeError(
+                'Cannot translate sequence. Codon table is not One-To-One')
         # otherwise, create reverse translation dictionary
-        rev_dict = {aa:codon for codon, aa in self.codon_dict.items()}
+        rev_dict = {aa: codon for codon, aa in self.codon_dict.items()}
         rev_dict['*'] = stop_codon
         # translate gene and return
         gene = ''
@@ -564,9 +574,8 @@ class CodonTable:
             gene += rev_dict[aa]
         return gene
 
+
 ### Test script
 if __name__ == '__main__':
-    test = Codon_table('RED20')
-    test_peptide ='MSKGEELFTGVVPILVELDGDVNGHKFSVRGEGEGDATNGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFSRYPDHMKRHDFFKSAMPEGYVQERTISFKDDGTYKTRAEVKFEGDTLVNRIELKGIDFKEDGNILGHKLEYNFNSHNVYITADKQKNGIKANFKIRHNVEDGSVQLADHYQQNTPIGDGPVLLPDNHYLSTQSVLSKDPNEKRDHMVLLEFVTAAGITHGMDELYK*'
-    gene = test.reverse_translate(test_peptide)
-    print('Reverse Translated Gene {0}'.format(gene))
+    test = CodonTable('RED20')
+    test.plot_graph()

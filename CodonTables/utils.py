@@ -586,17 +586,16 @@ class utils:
         # declare table to return
         promiscuous = {}
         for codon in utils.triplet_codons:
-            promiscuous[codon] = '*'
+            promiscuous[codon] = '0'
         # loop over codons to reassign
-        # import ipdb; ipdb.set_trace()
         for codon, AA in table.items():
             # skip assignments to STOP
-            if AA == '*': continue
+            if AA == '0': continue
             # get codons that would be decoded in reality
             wobble = utils.wobble_WC[utils.basepair_WC[codon[-1]]]
             codons = [codon[:2]+nt3 for nt3 in wobble]
             # determine if there is ambiguity
-            acceptable = [AA, '*']
+            acceptable = [AA, '0']
             for c in codons:
                 if promiscuous[c] not in acceptable:
                     # raise error if allow_ambiguous = False
@@ -605,7 +604,7 @@ class utils:
                     else:
                         # else, package all nonstop codons as tuple
                         AAs = tuple(
-                            [aa for aa in promiscuous[c] if aa != '*'] +
+                            [aa for aa in promiscuous[c] if aa != '0'] +
                             [AA]
                         )
                         promiscuous[c] = AAs
