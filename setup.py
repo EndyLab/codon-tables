@@ -4,7 +4,7 @@ with open('README.md', 'r') as handle:
     long_description = handle.read()
 
 setuptools.setup(
-    name='CodonTables-jecalles',
+    name='codontables-jecalles',
     version='0.0.1',
     author='Jonathan Calles',
     author_email='jecalles@stanford.edu',
@@ -19,5 +19,5 @@ setuptools.setup(
         'Operating System :: OS Independent',
     ],
     python_requires='>3.6',
-    package_data={'CodonTables':['res/*']}
+    package_data={'codontables':['res/*']}
 )
