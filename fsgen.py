@@ -1,10 +1,9 @@
 # import necessary modules
-import numpy as np
-import pandas as pd
-from CodonTables.utils import utils
-from CodonTables.table import CodonTable
 from queue import Queue as queue
 from random import choice
+import numpy as np
+from utils import utils
+
 
 class fsgen():
     ''' A class used to generate fast fail codon tables

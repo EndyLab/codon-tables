@@ -1,18 +1,17 @@
 # import necessary modules
-import numpy as np
-from scipy.special import comb
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import Bio.Data.CodonTable
-import networkx as nx
-from collections import deque
-import random
-from copy import copy
-import pickle
 import os
+from math import comb as binomial
+import pickle
+import random
+from collections import deque
+from copy import copy
+
+import Bio.Data.CodonTable
+import numpy as np
 
 # define path to file directory
 path = os.path.dirname(os.path.abspath(__file__))
+
 
 class utils:
     ''' A module used to package useful definitions and functions when
@@ -54,7 +53,7 @@ class utils:
     standard_table['UAG'] = '*'
     standard_table['UGA'] = '*'
     # unpickle additional class properties
-    with open(path+'/res/utils_definitions.pickle', 'rb') as handle:
+    with open(path + '/res/utils_definitions.pickle', 'rb') as handle:
         un_pickled = pickle.load(handle)
     [dNTPs, rNTPs, residues, triplet_codons, triplet_mut_pairs,
      quadruplet_codons, quadruplet_mut_pairs,
@@ -62,10 +61,10 @@ class utils:
      unrestricted_block, standard_block, natural_block,
      basepair_WC, wobble_WC, colorado_table] = un_pickled
     # unpickle RED15 and RED20 tables
-    with open(path+'/res/RED20.pickle', 'rb') as handle:
-         RED20 = pickle.load(handle)
-    with open(path+'/res/RED15.pickle', 'rb') as handle:
-         RED15 = pickle.load(handle)
+    with open(path + '/res/RED20.pickle', 'rb') as handle:
+        RED20 = pickle.load(handle)
+    with open(path + '/res/RED15.pickle', 'rb') as handle:
+        RED15 = pickle.load(handle)
 
     @staticmethod
     def get_aa_counts(table):
@@ -132,10 +131,10 @@ class utils:
         '''
         # use utils.promiscuity method to determine ambiguity
         try:
-            __ = utils.promiscuity(table, allow_ambiguous=False) #fails if ambiguous
+            __ = utils.promiscuity(table, allow_ambiguous=False)  # fails if ambiguous
             ambiguous = False
         except:
-            ambiguous =True
+            ambiguous = True
         return ambiguous
 
     @staticmethod
@@ -173,14 +172,14 @@ class utils:
         '''
         # declare storage dict to count amino acid number
         aa_set = set(aa for aa in table.values())
-        aa_counts = {aa:0 for aa in aa_set}
+        aa_counts = {aa: 0 for aa in aa_set}
         # count number of amino acids
         for aa in table.values():
             aa_counts[aa] += 1
         # iterate through dictionary and check counts
         one2one = True
         for aa, count in aa_counts.items():
-            #skip stop and null signals:
+            # skip stop and null signals:
             if aa in {'*', '0'}:
                 continue
             elif count > 1:
@@ -222,7 +221,7 @@ class utils:
             neighbors = []
             # use connect_recurse to map connectivity
             dist_dict[codon] = utils.__connect_recurse(codon, 1, table,
-                neighbors, codon_deque, cache);
+                                                       neighbors, codon_deque, cache)
         # return codon_dist
         return dist_dict
 
@@ -254,9 +253,10 @@ class utils:
                 # handle if nt is the same as base
                 if nt == base: continue
                 # if not, generate new codon
-                c_new = codon[:i] + nt + codon[i+1:]
+                c_new = codon[:i] + nt + codon[i + 1:]
                 # Base case: c_new already found
-                if c_new in cache: continue
+                if c_new in cache:
+                    continue
                 # Base case: found terminus
                 elif table[c_new] != table[codon]:
                     # add distance to neighbors list
@@ -275,7 +275,7 @@ class utils:
             c, newlevel = codon_deque.pop()
             # append results to neighbors list
             neighbors = utils.__connect_recurse(c, newlevel + 1, table,
-                                               neighbors, codon_deque, cache)
+                                                neighbors, codon_deque, cache)
         # return resulting list
         return neighbors
 
@@ -328,7 +328,7 @@ class utils:
                 if nt == base:
                     continue
                 # if not, generate new codon
-                c_new = codon[:i] + nt + codon[i+1:]
+                c_new = codon[:i] + nt + codon[i + 1:]
                 # store new codon in neighbors
                 neighbors.append(c_new)
         # return resulting list
@@ -404,7 +404,7 @@ class utils:
         # loop over codons in each block; return false if they code for
         # different residues
         for codon_list in block_struct.values():
-            #initialize set of residues that a block codes for and populate
+            # initialize set of residues that a block codes for and populate
             block_residues = set()
             for codon in codon_list:
                 block_residues.add(table[codon])
@@ -415,7 +415,7 @@ class utils:
         return True
 
     @staticmethod
-    def random_table(wobble_rule = 'standard'):
+    def random_table(wobble_rule='standard'):
         '''A static method used to generate a random codon table, optionally
         defining the block structure. Will guarantee each amino acid be
         represented by at least one block in the table.
@@ -427,10 +427,8 @@ class utils:
 
         Acceptable inputs:
         - 'standard' : 48 blocks
-        - 'preserve_block' : maintain same block structure as standard
-            table
-        - 'unrestricted' : 63 open blocks, at least 1 of every AA and
-            stop.
+        - 'preserve_block' : maintain same block structure as standard table
+        - 'unrestricted' : 63 open blocks, at least 1 of every AA and stop.
 
         Returns
         -------
@@ -438,9 +436,9 @@ class utils:
         '''
         # determine block structure based on wobble rule
         block_choices = {
-            'standard' : utils.standard_block,
-            'preserve_block' : utils.natural_block,
-            'unrestricted' : utils.unrestricted_block
+            'standard': utils.standard_block,
+            'preserve_block': utils.natural_block,
+            'unrestricted': utils.unrestricted_block
         }
         block_struct = copy(block_choices[wobble_rule])
         # get blocks to assign
@@ -448,11 +446,9 @@ class utils:
         random.shuffle(blocks)
         # randomly assign one block to each residue
         residues = copy(utils.residues)
-        for i, AA in enumerate(residues):
-            block = blocks[-(i+1)]
+        for AA in residues:
+            block = blocks.pop()
             block_struct[block] = AA
-        # truncate to ignore assigned blocks
-        blocks = blocks[:-(i+1)]
         # randomly assign values to the remaining blocks
         for block in blocks:
             AA = random.choice(residues)
@@ -483,6 +479,10 @@ class utils:
         - int n: the number of possible tables
         - str num: n, represented in scientific notation as a string
         '''
+        # calculate n
+        n = l_aa**b + np.array(
+            [(-1)**i * binomial(l_aa,  i) * (l_aa - i)**b for i in range(1, l_aa)]
+        ).sum()
         # handle string processing
         mag = -1
         temp_n = n
@@ -515,10 +515,10 @@ class utils:
         total_mut = len(mut_pairs)
         # loop over mutation pairs and increment for synonymous mutations
         for (c1, c2) in mut_pairs:
-            if(table[c1] == table[c2]):
+            if (table[c1] == table[c2]):
                 syn_mut += 1
         # return fraction of synonymous mutations
-        return syn_mut/total_mut
+        return syn_mut / total_mut
 
     @staticmethod
     def mutability(table):
@@ -580,7 +580,7 @@ class utils:
         # handle type errors for input table
         if type(table) != dict:
             try:
-                table = table.codon_dict # attempt to convert to dict
+                table = table.codon_dict  # attempt to convert to dict
             except:
                 raise ValueError("Input table is not type dict or CodonTable")
         # declare table to return
@@ -593,7 +593,7 @@ class utils:
             if AA == '0': continue
             # get codons that would be decoded in reality
             wobble = utils.wobble_WC[utils.basepair_WC[codon[-1]]]
-            codons = [codon[:2]+nt3 for nt3 in wobble]
+            codons = [codon[:2] + nt3 for nt3 in wobble]
             # determine if there is ambiguity
             acceptable = [AA, '0']
             for c in codons:
@@ -644,7 +644,7 @@ class utils:
         # get codon length
         l = len(codon_list[0])
         # calculate mut_num and return
-        return (a**l) * l * (a-1)
+        return (a ** l) * l * (a - 1)
 
     @staticmethod
     def get_mut_pairs(table):
@@ -672,7 +672,7 @@ class utils:
                     if nt == base:
                         continue
                     # if not, generate new codon
-                    c_new = codon[:i] + nt + codon[i+1:]
+                    c_new = codon[:i] + nt + codon[i + 1:]
                     # add to set
                     mut_pairs.add((codon, c_new))
         return mut_pairs
@@ -692,8 +692,8 @@ class utils:
         '''
         # define ordering dictionary
         orderdict = {
-            'RNA' : ['U', 'C', 'A', 'G'],
-            'DNA' : ['T', 'C', 'A', 'G']
+            'RNA': ['U', 'C', 'A', 'G'],
+            'DNA': ['T', 'C', 'A', 'G']
         }
         # raise error if nucleic_acid flag invalid
         if nucleic_acid.upper() not in orderdict:
@@ -713,12 +713,13 @@ class utils:
 
 if __name__ == '__main__':
     table = {
-        'UUU' : 'F',
-        'UCA' : 'S',
-        'UCG' : 'L',
-        'AUG' : 'M',
+        'UUU': 'F',
+        'UCA': 'S',
+        'UCG': 'L',
+        'AUG': 'M',
     }
     newtable = utils.promiscuity(table, allow_ambiguous=True)
-    from CodonTables.table import CodonTable
+    from table import CodonTable
+
     new_table = CodonTable(newtable)
     new_table.codon_dict

@@ -1,18 +1,16 @@
 # import necessary modules
+import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 import pandas as pd
+from utils import utils
 from matplotlib import cm
-import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap as LSC
 from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import networkx as nx
-from CodonTables.utils import utils
 
 
 class CodonTable:
-    ''' A class used to handle codon table objects.
-    '''
+    ''' A class used to handle codon table objects. '''
 
     def __init__(self, table=None, ordering=None, norm=True):
         '''Automatically loads object with a CodonTable and a
@@ -110,7 +108,7 @@ class CodonTable:
         the amino acid's relative index when ordered.
         '''
         # extract value to store
-        if norm == True:
+        if norm is True:
             # use AA order instead of absolute metric value
             order = self.sort_ordering()
             return np.where(order == AA)[0]
@@ -122,7 +120,7 @@ class CodonTable:
     def get_cube(self, norm=True):
         ''' Takes the codon table (in dictionary form) and reporting function
         and returns a cube of 64 locations (represented as a 4x4x4 cube with
-        values). For levity and brevity, the returned cube is called Borg. The
+        values). For levity and brevity, the returned cube is called borg. The
         normalization flag (norm=True) tells the method to use the order of AA
         as opposed to the exact value of the ordering metric for visualization
 
@@ -133,10 +131,10 @@ class CodonTable:
 
         Returns
         -------
-        np.array Borg: a 4x4x4 np.array representing the codon table in 3D
+        np.array borg: a 4x4x4 np.array representing the codon table in 3D
         '''
-        # declare Borg cube
-        Borg = np.zeros([4, 4, 4])
+        # declare borg cube
+        borg = np.zeros([4, 4, 4])
         # define coordinate mappings for codon nt
         codon_to_int = {
             'A': 0,
@@ -150,10 +148,10 @@ class CodonTable:
             x = codon_to_int[codon[0]]
             y = codon_to_int[codon[1]]
             z = codon_to_int[codon[2]]
-            # store value in Borg cube
-            Borg[x][y][z] = self.get_val(AA, norm)
-        # return the Borg cube
-        return Borg
+            # store value in borg cube
+            borg[x][y][z] = self.get_val(AA, norm)
+        # return the borg cube
+        return borg
 
     def get_scatter_data(self, norm=True):
         ''' Conerts the codon table to a format that is easily parsed by
@@ -218,7 +216,7 @@ class CodonTable:
             traditional format
         '''
         # handle default options for table
-        if table == None:
+        if table is None:
             table = self.codon_dict
         # get list of rNTPs
         NTP = utils.rNTPs
@@ -231,7 +229,7 @@ class CodonTable:
             for codon, AA in table.items():
                 suffixes.add(codon[3:])
             # for each suffix, get subtable and convert to dataframe
-            suffixes = utils.orderNTPs(list(suffixes))
+            suffixes = utils.order_NTPs(list(suffixes))
             subtables = {}
             for suffix in suffixes:
                 subdict = {
@@ -253,7 +251,7 @@ class CodonTable:
                     row = []
                     # for each third position, populate row list
                     for c3 in NTP:
-                        codon = c1+c2+c3+suffix
+                        codon = c1 + c2 + c3 + suffix
                         '''NOTE: this is where things get funky'''
                         element = '{0} : {1}'.format(codon, table[codon])
                         row.append(element)
@@ -282,9 +280,9 @@ class CodonTable:
         nx.Graph codon_graph: a networkx graph representing the codon table
         '''
         # define Prob of single point mutations
-        p_mut = 1/12
+        p_mut = 1 / 12
         # handle default table values
-        if table == None:
+        if table is None:
             table = self.codon_dict
         # declare graph
         codon_graph = nx.Graph()
@@ -306,14 +304,14 @@ class CodonTable:
             # populate edge dictionary
             for (A2, level) in neighbors:
                 if A2 not in edge_dict:
-                    edge_dict[A2] = p_mut**level
+                    edge_dict[A2] = p_mut ** level
                 else:
-                    edge_dict[A2] += p_mut**level
+                    edge_dict[A2] += p_mut ** level
             # convert edge dictionary into edges
             for A2, weight in edge_dict.items():
                 codon_graph.add_edge(A1, A2, weight=weight)
 
-        #return network
+        # return network
         return codon_graph
 
     def plot3d(self, title="", color="viridis", ctitle="", norm=True):
@@ -341,7 +339,7 @@ class CodonTable:
         '''
         # raise error if table is higher dimensional than triplet
         dimension = len(list(self.codon_dict)[0])
-        if (dimension > 3):
+        if dimension > 3:
             raise ValueError(
                 'Cannot plot 3d representation of {0}D genetic code'.format(
                     dimension)
@@ -352,7 +350,7 @@ class CodonTable:
         fig = plt.figure()
         ax = Axes3D(fig)
         # pick colormap
-        if (color == "viridis"):
+        if color == "viridis":
             softened = False
         else:
             softened = True
@@ -393,15 +391,14 @@ class CodonTable:
         # format title
         if title != "":
             plt.title(title)
-        #show figure
+        # show figure
         ax.view_init(elev=8, azim=-11)
         plt.show()
-        #return figure
+        # return figure
         return fig
 
     def plot_graph(self, title="", ctitle="",
-                   color='viridis', norm=True,
-                   node_size='count', node_color='kd',
+                   color='viridis', node_size='count', node_color='kd',
                    weighting_fxn=None,
                    filename=None):
         ''' Represents self.codon_dict as a network capturing the adjacency of
@@ -454,29 +451,29 @@ class CodonTable:
             softened = True
         cmap = self.colormap(color, softened)
         # unpack graph
-        G = self.codon_graph
+        codon_graph = self.codon_graph
         # unpack and normalize edge weights and node values for visualization
         weights = np.array(
-            [edge['weight'] for (a1, a2, edge) in G.edges(data=True)]
+            [edge['weight'] for (a1, a2, edge) in codon_graph.edges(data=True)]
         )
         # Optionally weigh edges nonlinearly for easier visualization
         if weighting_fxn is not None:
             weights = weighting_fxn(weights)
         weights /= np.mean(weights)
         node_size = [data[node_size]
-                     * 200 for (node, data) in G.nodes(data=True)]
+                     * 200 for (node, data) in codon_graph.nodes(data=True)]
         node_color = np.array(
-            [data[node_color] for (node, data) in G.nodes(data=True)]
+            [data[node_color] for (node, data) in codon_graph.nodes(data=True)]
         ).ravel()
         # set up layout
-        positions = nx.spring_layout(G, iterations=100)
+        positions = nx.spring_layout(codon_graph, iterations=100)
         # draw graph
         fig = plt.figure()
         plt.axis('off')
-        nodes = nx.draw_networkx_nodes(G, positions, cmap=cmap,
+        nodes = nx.draw_networkx_nodes(codon_graph, positions, cmap=cmap,
                                        node_color=node_color, node_size=node_size)
-        edges = nx.draw_networkx_edges(G, positions, width=weights)
-        labels = nx.draw_networkx_labels(G, positions)
+        edges = nx.draw_networkx_edges(codon_graph, positions, width=weights)
+        labels = nx.draw_networkx_labels(codon_graph, positions)
         # plot colorbar
         cbar = plt.colorbar(nodes)
         cbar.outline.set_visible(False)
@@ -485,21 +482,21 @@ class CodonTable:
         # recolor stop and null codons to white, grey, respectively
         stops = []
         nulls = []
-        for i, AA in enumerate(G.nodes()):
+        for i, AA in enumerate(codon_graph.nodes()):
             if AA == '*':
                 stops.append(int(i))
             elif AA == '0':
                 nulls.append(int(i))
         stops = np.array(stops, dtype=int)
         nulls = np.array(nulls, dtype=int)
-        nx.draw_networkx_nodes(G, positions,
+        nx.draw_networkx_nodes(codon_graph, positions,
                                nodelist=['*'], node_size=node_size[stops[0]],
                                node_color='white')
         if len(nulls) > 0:
-            nx.draw_networkx_nodes(G, positions,
+            nx.draw_networkx_nodes(codon_graph, positions,
                                    nodelist=['0'], node_size=node_size[nulls[0]],
                                    node_color='grey')
-        #format graph
+        # format graph
         if title != "":
             plt.title(title)
         # optionally save figure
@@ -575,7 +572,7 @@ class CodonTable:
         return gene
 
 
-### Test script
+# Test script
 if __name__ == '__main__':
     test = CodonTable('RED20')
     test.plot_graph()

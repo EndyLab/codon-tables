@@ -1,0 +1,6 @@
+setuptools~=49.6.0
+pandas~=1.1.0
+numpy~=1.19.1
+matplotlib~=3.2.2
+biopython~=1.77
+networkx~=2.4

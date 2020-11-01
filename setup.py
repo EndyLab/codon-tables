@@ -3,8 +3,11 @@ import setuptools
 with open('README.md', 'r') as handle:
     long_description = handle.read()
 
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
 setuptools.setup(
-    name='codontables-jecalles',
+    name='codontables',
     version='0.0.1',
     author='Jonathan Calles',
     author_email='jecalles@stanford.edu',
@@ -19,5 +22,6 @@ setuptools.setup(
         'Operating System :: OS Independent',
     ],
     python_requires='>3.6',
+    install_requires=requirements,
     package_data={'codontables':['res/*']}
 )

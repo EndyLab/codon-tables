@@ -1,9 +1,9 @@
 #import dependencies
-import numpy as np
-import matplotlib.pyplot as plt
 from uuid import uuid4 as uuid
-from CodonTables.utils import utils
-from CodonTables.table import CodonTable
+
+from table import CodonTable
+from utils import utils
+
 
 class Strain():
     '''A class used to represent a bacterial strain in culture'''

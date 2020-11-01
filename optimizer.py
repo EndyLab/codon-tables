@@ -1,17 +1,15 @@
-#import dependencies
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-from CodonTables.table import CodonTable
-from CodonTables.utils import utils
+from table import CodonTable
+from utils import utils
 from copy import copy
 
-#define Monte Carlo Simulation class
 class TableOptimizer:
     '''A class designed to optimize a codon table given an arbitrary objective
     function to minimize/maximize
     '''
-    def __init__(self, table=utils.standardTable,
+    def __init__(self, table=utils.standard_table,
                 costfxn=None, wobble_rule = 'standard',
                 debug=False):
         '''the init function for the TableOptimizer class. Optionally allows the
@@ -45,23 +43,23 @@ class TableOptimizer:
         TableOptimizer obj: returns an instance of the TableOptimizer object
         '''
         # handle CodonTable objects being passed
-        if type(table) == CodonTable:
-            table = CodonTable.CodonTable
+        if type(table) is CodonTable:
+            table = table.codon_table
         # handle costfxn input
-        if costfxn == None:
-            costfxn = self.maxMutMinVar
+        if costfxn is None:
+            costfxn = self.max_mut_min_var
         # calculate some attributes
-        resiCounts = utils.getAAcounts(table)
-        connectivity = utils.getCodonConnectivity(table)
+        resiCounts = utils.get_aa_counts(table)
+        connectivity = utils.get_codon_connectivity(table)
         # determine block structure based on wobble rule
         blockChoices = {
-            'standard' : utils.standardBlock,
-            'preserveBlock' : utils.naturalBlock,
-            'unrestricted' : utils.unrestrictedBlock
+            'standard' : utils.standard_block,
+            'preserveBlock' : utils.natural_block,
+            'unrestricted' : utils.unrestricted_block
         }
         # assign attributes
         self.table = table
-        self.blockStruct = copy(blockChoices[wobble_rule])
+        self.block_struct = copy(blockChoices[wobble_rule])
         self.costfxn = costfxn
         self.resiCounts = resiCounts
         self.connectivity = connectivity
@@ -174,8 +172,8 @@ class TableOptimizer:
         dict newTable: a python dict representing the next codon table
         '''
         # convert table to block form and get residue degeneracy
-        blockForm = utils.tableToBlocks(table, self.blockStruct)
-        blockCounts = utils.getBlockCounts(blockForm)
+        blockForm = utils.table_to_blocks(table, self.block_struct)
+        blockCounts = utils.get_block_counts(blockForm)
         # Case: switch two blocks
         if (random.random() < 0.5) | preserveBlock:
             switchable = [block for block, AA in blockForm.items()
@@ -200,7 +198,7 @@ class TableOptimizer:
             changeBlock = random.choice(mutable)
             blockForm[changeBlock] = random.choice(listAA)
         # convert blockForm back to table form and return
-        return utils.blocksToTable(blockForm, self.blockStruct)
+        return utils.blocks_to_table(blockForm, self.block_struct)
 
     ######################################
     ##          Cost  Functions         ##
@@ -210,15 +208,14 @@ class TableOptimizer:
     ######################################
 
     @staticmethod
-    def maxMutMinVar(table, subFunc):
+    def max_mut_min_var(table, subFunc):
         '''the default cost function for class. Implements a version of the
         cost function used by Novozhilov et al. 2007, but optimizes for
         maximizing mutability while minimizing variance per mutation
 
         Parameters
         ----------
-        - dict table: a python dictionary representing the codon table to
-            evaluate
+        - dict table: a python dictionary representing the codon table to evaluate
         - func subFunc(str AA_1, str AA_2): a function representing the penalty
             for substituting two amino acids
 
@@ -230,8 +227,8 @@ class TableOptimizer:
         metric = 0
         PRS = utils.PRS
         # generate dictionary of AA counts and codon connectivity
-        counts = utils.getAAcounts(table)
-        connectivity = utils.getCodonConnectivity(table)
+        counts = utils.get_aa_counts(table)
+        connectivity = utils.get_codon_connectivity(table)
         # loop over source codons
         for c_1 in table.keys():
             # calculate AA degeneracy; skip stop codons
@@ -336,7 +333,7 @@ class TableOptimizer:
         # represent resulting codon tables
         Table = CodonTable(table)
         fig2 = Table.plot3d('Optimized Codon Table: Node Color=Hydropathy')
-        fig3 = Table.plotGraph('Optimized Codon Graph: Node Color=Residue Degeneracy', node_val='count')
+        fig3 = Table.plot_graph('Optimized Codon Graph: Node Color=Residue Degeneracy', node_val='count')
 
 # Debugging
 if __name__ == '__main__':
